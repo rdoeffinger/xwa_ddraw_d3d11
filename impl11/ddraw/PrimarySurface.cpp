@@ -491,6 +491,8 @@ HRESULT PrimarySurface::Flip(
 				this->_flipFrames = numerator % rate;
 
 				interval = std::max(interval, 1u);
+				// Maximum allowed Present argument is 4.
+				if (g_config.RefreshLimit == 1 && interval > 4) interval = 4;
 
 				hr = DD_OK;
 
