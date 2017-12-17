@@ -689,9 +689,12 @@ HRESULT BackbufferSurface::GetSurfaceDesc(
 
 	this->_deviceResources->DefaultSurfaceDesc(lpDDSurfaceDesc, DDSCAPS_BACKBUFFER | DDSCAPS_VIDEOMEMORY);
 
-	if (g_config.XWAMode && this->_deviceResources->_frontbufferSurface)
+	if (g_config.XWAMode && !this->_deviceResources->_frontbufferSurface)
 	{
-		lpDDSurfaceDesc->lPitch = this->_deviceResources->_displayWidth * 2;
+		// workaround for XWA with 32-bit patch applied,
+		// this code is used for the star field which is
+		// being rendered in 32-bit.
+		lpDDSurfaceDesc->lPitch = this->_deviceResources->_displayWidth * this->_deviceResources->_displayBpp;
 	}
 
 #if LOGGER
