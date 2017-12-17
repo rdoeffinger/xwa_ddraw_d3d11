@@ -14,7 +14,7 @@
     <ProjectGuid>{C03DE3A0-EF2A-4596-AFDE-66E4C4FD6E23}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ddraw</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
