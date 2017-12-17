@@ -5,16 +5,18 @@
 #include "common.h"
 
 #include <mmsystem.h>
+#include <xinput.h>
 
 #include "joystick.h"
 
 #pragma comment(lib, "winmm")
+#pragma comment(lib, "XInput9_1_0")
 
 #undef min
 #undef max
 #include <algorithm>
 
-static bool needsJoyEmul()
+static int needsJoyEmul()
 {
 	UINT cnt = joyGetNumDevs();
 	for (unsigned i = 0; i < cnt; ++i)
@@ -25,9 +27,11 @@ static bool needsJoyEmul()
 		jie.dwFlags = JOY_RETURNALL;
 		UINT res = joyGetPosEx(0, &jie);
 		if (res == JOYERR_NOERROR)
-			return false;
+			return 0;
 	}
-	return true;
+	XINPUT_STATE state;
+	if (XInputGetState(0, &state) == ERROR_SUCCESS) return 2;
+	return 1;
 }
 
 UINT WINAPI emulJoyGetNumDevs(void)
@@ -49,6 +53,20 @@ UINT WINAPI emulJoyGetDevCaps(UINT_PTR joy, struct tagJOYCAPSA *pjc, UINT size)
 	if (joy != 0) return MMSYSERR_NODRIVER;
 	if (size != 0x194) return MMSYSERR_INVALPARAM;
 	memset(pjc, 0, size);
+	if (g_config.JoystickEmul == 2) {
+		pjc->wXmax = 65536;
+		pjc->wYmax = 65536;
+		pjc->wZmax = 255;
+		pjc->wRmax = 65536;
+		pjc->wUmax = 65536;
+		pjc->wVmax = 255;
+		pjc->wNumButtons = 12;
+		pjc->wMaxButtons = 12;
+		pjc->wNumAxes = 6;
+		pjc->wMaxAxes = 6;
+		pjc->wCaps = JOYCAPS_HASZ | JOYCAPS_HASR | JOYCAPS_HASU | JOYCAPS_HASV | JOYCAPS_HASPOV | JOYCAPS_POV4DIR;
+		return JOYERR_NOERROR;
+	}
 	pjc->wXmax = 512;
 	pjc->wYmax = 512;
 	pjc->wNumButtons = 5;
@@ -60,13 +78,64 @@ UINT WINAPI emulJoyGetDevCaps(UINT_PTR joy, struct tagJOYCAPSA *pjc, UINT size)
 
 static DWORD lastGetPos;
 
+static const DWORD povmap[16] = {
+	JOY_POVCENTERED, // nothing
+	JOY_POVFORWARD, // DPAD_UP
+	JOY_POVBACKWARD, // DPAD_DOWN
+	JOY_POVCENTERED, // up and down
+	JOY_POVLEFT, // DPAD_LEFT
+	(270 + 45) * 100, // left and up
+	(180 + 45) * 100, // down and left
+	JOY_POVLEFT, // left and up and down
+	JOY_POVRIGHT, // DPAD_RIGHT
+	45 * 100, // up and right
+	(90 + 45) * 100, // right and down
+	JOY_POVRIGHT, // right and up and down
+
+	// As from start, but  with both right and left pressed
+	JOY_POVCENTERED, // nothing
+	JOY_POVFORWARD, // DPAD_UP
+	JOY_POVBACKWARD, // DPAD_DOWN
+	JOY_POVCENTERED, // up and down
+};
+
 UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 {
 	if (!g_config.JoystickEmul) {
 		return joyGetPosEx(joy, pji);
 	}
 	if (joy != 0) return MMSYSERR_NODRIVER;
-    if (pji->dwSize != 0x34) return MMSYSERR_INVALPARAM;
+	if (pji->dwSize != 0x34) return MMSYSERR_INVALPARAM;
+	if (g_config.JoystickEmul == 2) {
+		XINPUT_STATE state;
+		XInputGetState(0, &state);
+		pji->dwFlags = JOY_RETURNALL;
+		pji->dwXpos = state.Gamepad.sThumbLX + 32768;
+		pji->dwYpos = state.Gamepad.sThumbLY + 32768;
+		pji->dwZpos = state.Gamepad.bRightTrigger;
+		pji->dwRpos = state.Gamepad.sThumbRX + 32768;
+		pji->dwUpos = state.Gamepad.sThumbRY + 32768;
+		pji->dwVpos = state.Gamepad.bLeftTrigger;
+		pji->dwButtons = 0;
+		// Triggers first
+		if (state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 1;
+		if (state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 2;
+		// Thumb and shoulder buttons next
+		pji->dwButtons |= (state.Gamepad.wButtons & 0x3c0) >> 4;
+		// A, B, X, Y
+		pji->dwButtons |= (state.Gamepad.wButtons & 0xf000) >> 6;
+		// start and back
+		pji->dwButtons |= (state.Gamepad.wButtons & 0x30) << 6;
+		// XWA can map only 12 buttons, so map dpad to POV
+		pji->dwPOV = povmap[state.Gamepad.wButtons & 15];
+
+		pji->dwButtonNumber = 0;
+		for (int i = 0; i < 32; i++)
+		{
+			if ((pji->dwButtons >> i) & 1) ++pji->dwButtonNumber;
+		}
+		return JOYERR_NOERROR;
+	}
 	DWORD now = GetTickCount();
 	// Assume we started a new game
 	if ((now - lastGetPos) > 5000)
