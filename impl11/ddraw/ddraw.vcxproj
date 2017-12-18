@@ -87,7 +87,7 @@
       <UACUIAccess>true</UACUIAccess>
     </Link>
     <PostBuildEvent>
-      <Command>signtool sign /t  http://timestamp.globalsign.com/scripts/timestamp.dll $(OutputPath)\ddraw.dll</Command>
+      <Command>signtool sign /fd sha256 /t http://time.certum.pl $(OutputPath)\ddraw.dll</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Sign binary</Message>
