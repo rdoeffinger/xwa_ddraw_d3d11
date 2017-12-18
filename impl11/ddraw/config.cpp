@@ -35,6 +35,7 @@ Config::Config()
 	this->Fullscreen = 0;
 	this->Width = 0;
 	this->Height = 0;
+	this->JoystickEmul = -1;
 	this->MouseSensitivity = 0.5f;
 	this->KbdSensitivity = 1.0f;
 	this->XWAMode = true;
@@ -44,8 +45,8 @@ Config::Config()
 
 	this->Concourse3DScale = 0.6f;
 
-	this->RefreshLimit = 1;
 	this->PresentSleepTime = -1;
+	this->RefreshLimit = 1;
 
 	// Try to always load config from executable path, not CWD
 	char execPath[MAX_PATH] = "";
