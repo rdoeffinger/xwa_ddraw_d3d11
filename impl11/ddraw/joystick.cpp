@@ -18,6 +18,8 @@
 
 static int needsJoyEmul()
 {
+	XINPUT_STATE state;
+	if (XInputGetState(0, &state) == ERROR_SUCCESS) return 2;
 	UINT cnt = joyGetNumDevs();
 	for (unsigned i = 0; i < cnt; ++i)
 	{
@@ -29,8 +31,6 @@ static int needsJoyEmul()
 		if (res == JOYERR_NOERROR)
 			return 0;
 	}
-	XINPUT_STATE state;
-	if (XInputGetState(0, &state) == ERROR_SUCCESS) return 2;
 	return 1;
 }
 
