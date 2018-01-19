@@ -175,16 +175,16 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 		++pji->dwButtonNumber;
 	}
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
-		pji->dwXpos = static_cast<DWORD>(std::max(256 - 256 * g_config.KbdSensitivity, 0.0f));;
+		pji->dwXpos = static_cast<DWORD>(std::max(256 - 256 * g_config.KbdSensitivity, 0.0f));
 	}
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
-		pji->dwXpos = static_cast<DWORD>(std::min(256 + 256 * g_config.KbdSensitivity, 512.0f));;
+		pji->dwXpos = static_cast<DWORD>(std::min(256 + 256 * g_config.KbdSensitivity, 512.0f));
 	}
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
-		pji->dwYpos = static_cast<DWORD>(std::max(256 - 256 * g_config.KbdSensitivity, 0.0f));;
+		pji->dwYpos = static_cast<DWORD>(std::max(256 - 256 * g_config.KbdSensitivity, 0.0f));
 	}
 	if (GetAsyncKeyState(VK_UP) & 0x8000) {
-		pji->dwYpos = static_cast<DWORD>(std::min(256 + 256 * g_config.KbdSensitivity, 512.0f));;
+		pji->dwYpos = static_cast<DWORD>(std::min(256 + 256 * g_config.KbdSensitivity, 512.0f));
 	}
 	return JOYERR_NOERROR;
 }
