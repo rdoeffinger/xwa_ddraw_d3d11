@@ -45,10 +45,14 @@ UINT WINAPI emulJoyGetNumDevs(void)
 	return 1;
 }
 
+static UINT joyYmax;
+
 UINT WINAPI emulJoyGetDevCaps(UINT_PTR joy, struct tagJOYCAPSA *pjc, UINT size)
 {
 	if (!g_config.JoystickEmul) {
-		return joyGetDevCaps(joy, pjc, size);
+		UINT res = joyGetDevCaps(joy, pjc, size);
+		if (g_config.InvertYAxis && joy == 0 && pjc && size == 0x194) joyYmax = pjc->wYmax;
+		return res;
 	}
 	if (joy != 0) return MMSYSERR_NODRIVER;
 	if (size != 0x194) return MMSYSERR_INVALPARAM;
@@ -102,7 +106,9 @@ static const DWORD povmap[16] = {
 UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 {
 	if (!g_config.JoystickEmul) {
-		return joyGetPosEx(joy, pji);
+		UINT res = joyGetPosEx(joy, pji);
+		if (g_config.InvertYAxis && joyYmax > 0) pji->dwYpos = joyYmax - pji->dwYpos;
+		return res;
 	}
 	if (joy != 0) return MMSYSERR_NODRIVER;
 	if (pji->dwSize != 0x34) return MMSYSERR_INVALPARAM;
@@ -112,6 +118,7 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 		pji->dwFlags = JOY_RETURNALL;
 		pji->dwXpos = state.Gamepad.sThumbLX + 32768;
 		pji->dwYpos = state.Gamepad.sThumbLY + 32768;
+		if (g_config.InvertYAxis) pji->dwYpos = 65536 - pji->dwYpos;
 		pji->dwZpos = state.Gamepad.bRightTrigger;
 		pji->dwRpos = state.Gamepad.sThumbRX + 32768;
 		pji->dwUpos = state.Gamepad.sThumbRY + 32768;
@@ -186,5 +193,6 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 	if (GetAsyncKeyState(VK_UP) & 0x8000) {
 		pji->dwYpos = static_cast<DWORD>(std::min(256 + 256 * g_config.KbdSensitivity, 512.0f));
 	}
+	if (g_config.InvertYAxis) pji->dwYpos = 512 - pji->dwYpos;
 	return JOYERR_NOERROR;
 }

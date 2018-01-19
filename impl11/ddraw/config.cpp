@@ -36,6 +36,7 @@ Config::Config()
 	this->Width = 0;
 	this->Height = 0;
 	this->JoystickEmul = -1;
+	this->InvertYAxis = false;
 	this->MouseSensitivity = 0.5f;
 	this->KbdSensitivity = 1.0f;
 	this->XWAMode = true;
@@ -135,6 +136,10 @@ Config::Config()
 			else if (name == "JoystickEmul")
 			{
 				this->JoystickEmul = stoi(value);
+			}
+			else if (name == "InvertYAxis")
+			{
+				this->InvertYAxis = stoi(value) != 0;
 			}
 			else if (name == "MouseSensitivity")
 			{
