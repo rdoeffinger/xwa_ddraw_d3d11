@@ -344,7 +344,36 @@ HRESULT Direct3DTexture::Load(
 
 		if (!messageShown)
 		{
-			MessageBox(nullptr, _com_error(hr).ErrorMessage(), __FUNCTION__, MB_ICONERROR);
+			if (hr == DXGI_ERROR_DEVICE_REMOVED)
+			{
+				HRESULT reason = this->_deviceResources->_d3dDevice->GetDeviceRemovedReason();
+				std::ostringstream s;
+				s << "Direct3D device was removed/driver crashed! Reason given is ";
+				switch (reason)
+				{
+				case DXGI_ERROR_DEVICE_HUNG:
+					s << "device hung ";
+					break;
+				case DXGI_ERROR_DEVICE_REMOVED:
+					s << "device removed ";
+					break;
+				case DXGI_ERROR_DEVICE_RESET:
+					s << "device reset ";
+					break;
+				case DXGI_ERROR_DRIVER_INTERNAL_ERROR:
+					s << "driver internal error ";
+					break;
+				case DXGI_ERROR_INVALID_CALL:
+					s << "invalid call ";
+					break;
+				}
+				s << reason << " " << _com_error(reason).ErrorMessage();
+				MessageBox(nullptr, s.str().c_str(), __FUNCTION__, MB_ICONERROR);
+			}
+			else
+			{
+				MessageBox(nullptr, _com_error(hr).ErrorMessage(), __FUNCTION__, MB_ICONERROR);
+			}
 		}
 
 		messageShown = true;
