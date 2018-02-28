@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Reimar Döffinger
+// Copyright (c) 2016-2018 Reimar Döffinger
 // Licensed under the MIT license. See LICENSE.txt
 
 #include "config.h"
@@ -119,6 +119,8 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 		pji->dwXpos = state.Gamepad.sThumbLX + 32768;
 		pji->dwYpos = state.Gamepad.sThumbLY + 32768;
 		if (g_config.InvertYAxis) pji->dwYpos = 65536 - pji->dwYpos;
+		// The 65536 value breaks XWA with in-game invert Y axis option
+		pji->dwYpos = std::min(pji->dwYpos, DWORD(65535));
 		pji->dwZpos = state.Gamepad.bRightTrigger;
 		pji->dwRpos = state.Gamepad.sThumbRX + 32768;
 		pji->dwUpos = state.Gamepad.sThumbRY + 32768;
