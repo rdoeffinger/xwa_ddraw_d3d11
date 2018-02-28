@@ -59,7 +59,7 @@ UINT WINAPI emulJoyGetDevCaps(UINT_PTR joy, struct tagJOYCAPSA *pjc, UINT size)
 	memset(pjc, 0, size);
 	if (g_config.JoystickEmul == 2) {
 		pjc->wXmax = 65536;
-		pjc->wYmax = 65536;
+		pjc->wYmax = 65535;
 		pjc->wZmax = 255;
 		pjc->wRmax = 65536;
 		pjc->wUmax = 65536;
