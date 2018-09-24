@@ -690,9 +690,9 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 				unsigned short* srcColors = (unsigned short*)src;
 				unsigned int* colors = (unsigned int*)buffer;
 
-				for (unsigned y = 0; y < height; y++)
+				for (DWORD y = 0; y < height; y++)
 				{
-					unsigned x;
+					DWORD x;
 					// The loop condition shouldn't need to be so obfuscated,
 					// but MSVC is stupid and generates slow loop conditions otherwise
 					for (x = 8; x <= width; x += 8)
@@ -742,9 +742,9 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 				unsigned short* srcColors = (unsigned short*)src;
 				unsigned int* colors = (unsigned int*)buffer;
 
-				for (unsigned y = 0; y < height; y++)
+				for (DWORD y = 0; y < height; y++)
 				{
-					for (unsigned x = 0; x < width; x++)
+					for (DWORD x = 0; x < width; x++)
 					{
 						unsigned short color16 = *srcColors;
 						srcColors++;
@@ -764,9 +764,9 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 				unsigned int* srcColors = (unsigned int*)src;
 				unsigned int* colors = (unsigned int*)buffer;
 
-				for (unsigned y = 0; y < height; y++)
+				for (DWORD y = 0; y < height; y++)
 				{
-					for (unsigned x = 0; x < width; x++)
+					for (DWORD x = 0; x < width; x++)
 					{
 						unsigned int color32 = *srcColors;
 						srcColors++;
@@ -797,7 +797,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 					unsigned int* srcColors = (unsigned int*)src;
 					unsigned int* colors = (unsigned int*)buffer;
 
-					for (unsigned y = 0; y < height; y++)
+					for (DWORD y = 0; y < height; y++)
 					{
 						memcpy(colors, srcColors, width * 4);
 						srcColors += width;
@@ -1023,7 +1023,7 @@ HRESULT DeviceResources::RetrieveBackBuffer(char* buffer, DWORD width, DWORD hei
 						unsigned int* srcColors = (unsigned int*)map.pData;
 						unsigned int* colors = (unsigned int*)buffer2;
 
-						for (unsigned y = 0; y < this->_backbufferHeight; y++)
+						for (DWORD y = 0; y < this->_backbufferHeight; y++)
 						{
 							memcpy(colors, srcColors, this->_backbufferWidth * 4);
 

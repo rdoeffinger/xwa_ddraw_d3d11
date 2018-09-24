@@ -27,7 +27,7 @@ Config g_config;
 Config::Config()
 {
 	this->AspectRatioPreserved = true;
-	this->MultisamplingAntialiasingEnabled = true;
+	this->MultisamplingAntialiasingEnabled = false;
 	this->AnisotropicFilteringEnabled = true;
 	this->GenerateMipMaps = -1;
 	this->WireframeFillMode = false;
@@ -291,4 +291,6 @@ Config::Config()
 		}
 		SetProcessAffinityMask(mod, ProcessAffinity);
 	}
+
+	DisableProcessWindowsGhosting();
 }
