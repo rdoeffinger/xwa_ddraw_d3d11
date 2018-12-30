@@ -73,5 +73,5 @@ public:
 	ComPtr<ID3D11Buffer> _indexBuffer;
 
 private:
-	void UpdatePixelShader(ID3D11DeviceContext *context, ID3D11PixelShader *&currentPixelShader, Direct3DTexture *texture);
+	void UpdatePixelShader(ID3D11DeviceContext *context, Direct3DTexture *texture);
 };

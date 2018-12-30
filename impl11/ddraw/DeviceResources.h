@@ -23,6 +23,19 @@ public:
 
 	HRESULT LoadResources();
 
+	void InitInputLayout(ID3D11InputLayout* inputLayout);
+	void InitVertexShader(ID3D11VertexShader* vertexShader);
+	void InitPixelShader(ID3D11PixelShader* pixelShader);
+	void InitTopology(D3D_PRIMITIVE_TOPOLOGY topology);
+	void InitRasterizerState(ID3D11RasterizerState* state);
+	HRESULT InitSamplerState(ID3D11SamplerState** sampler, D3D11_SAMPLER_DESC* desc);
+	HRESULT InitBlendState(ID3D11BlendState* blend, D3D11_BLEND_DESC* desc);
+	HRESULT InitDepthStencilState(ID3D11DepthStencilState* depthState, D3D11_DEPTH_STENCIL_DESC* desc);
+	void InitVertexBuffer(ID3D11Buffer** buffer, UINT* stride, UINT* offset);
+	void InitIndexBuffer(ID3D11Buffer* buffer);
+	void InitViewport(D3D11_VIEWPORT* viewport);
+	void InitConstantBuffer(ID3D11Buffer** buffer, const float* viewportScale);
+
 	HRESULT RenderMain(char* buffer, DWORD width, DWORD height, DWORD bpp, bool useColorKey = true);
 
 	HRESULT RetrieveBackBuffer(char* buffer, DWORD width, DWORD height, DWORD bpp);

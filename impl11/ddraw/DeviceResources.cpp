@@ -613,6 +613,219 @@ HRESULT DeviceResources::LoadResources()
 	return hr;
 }
 
+void DeviceResources::InitInputLayout(ID3D11InputLayout* inputLayout)
+{
+	static ID3D11InputLayout* currentInputLayout = nullptr;
+
+	if (inputLayout != currentInputLayout)
+	{
+		currentInputLayout = inputLayout;
+		this->_d3dDeviceContext->IASetInputLayout(inputLayout);
+	}
+}
+
+void DeviceResources::InitVertexShader(ID3D11VertexShader* vertexShader)
+{
+	static ID3D11VertexShader* currentVertexShader = nullptr;
+
+	if (vertexShader != currentVertexShader)
+	{
+		currentVertexShader = vertexShader;
+		this->_d3dDeviceContext->VSSetShader(vertexShader, nullptr, 0);
+	}
+}
+
+void DeviceResources::InitPixelShader(ID3D11PixelShader* pixelShader)
+{
+	static ID3D11PixelShader* currentPixelShader = nullptr;
+
+	if (pixelShader != currentPixelShader)
+	{
+		currentPixelShader = pixelShader;
+		this->_d3dDeviceContext->PSSetShader(pixelShader, nullptr, 0);
+	}
+}
+
+void DeviceResources::InitTopology(D3D_PRIMITIVE_TOPOLOGY topology)
+{
+	D3D_PRIMITIVE_TOPOLOGY currentTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+
+	if (topology != currentTopology)
+	{
+		currentTopology = topology;
+		this->_d3dDeviceContext->IASetPrimitiveTopology(topology);
+	}
+}
+
+void DeviceResources::InitRasterizerState(ID3D11RasterizerState* state)
+{
+	static ID3D11RasterizerState* currentState = nullptr;
+
+	if (state != currentState)
+	{
+		currentState = state;
+		this->_d3dDeviceContext->RSSetState(state);
+	}
+}
+
+HRESULT DeviceResources::InitSamplerState(ID3D11SamplerState** sampler, D3D11_SAMPLER_DESC* desc)
+{
+	static ID3D11SamplerState** currentSampler = nullptr;
+	static D3D11_SAMPLER_DESC currentDesc{};
+
+	if (sampler == nullptr)
+	{
+		if (memcmp(desc, &currentDesc, sizeof(D3D11_SAMPLER_DESC)) != 0)
+		{
+			HRESULT hr;
+			ComPtr<ID3D11SamplerState> tempSampler;
+			if (FAILED(hr = this->_d3dDevice->CreateSamplerState(desc, &tempSampler)))
+				return hr;
+
+			currentDesc = *desc;
+			currentSampler = tempSampler.GetAddressOf();
+			this->_d3dDeviceContext->PSSetSamplers(0, 1, currentSampler);
+
+			desc->Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			if (FAILED(hr = this->_d3dDevice->CreateSamplerState(desc, &tempSampler)))
+				return hr;
+			this->_d3dDeviceContext->PSSetSamplers(1, 1, tempSampler.GetAddressOf());
+		}
+	}
+	else
+	{
+		if (sampler != currentSampler)
+		{
+			currentDesc = {};
+			currentSampler = sampler;
+			this->_d3dDeviceContext->PSSetSamplers(0, 1, currentSampler);
+		}
+	}
+
+	return S_OK;
+}
+
+HRESULT DeviceResources::InitBlendState(ID3D11BlendState* blend, D3D11_BLEND_DESC* desc)
+{
+	static ID3D11BlendState* currentBlend = nullptr;
+	static D3D11_BLEND_DESC currentDesc{};
+
+	if (blend == nullptr)
+	{
+		if (memcmp(desc, &currentDesc, sizeof(D3D11_BLEND_DESC)) != 0)
+		{
+			HRESULT hr;
+			ComPtr<ID3D11BlendState> tempBlend;
+			if (FAILED(hr = this->_d3dDevice->CreateBlendState(desc, &tempBlend)))
+				return hr;
+
+			currentDesc = *desc;
+			currentBlend = tempBlend;
+
+			static const FLOAT factors[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			UINT mask = 0xffffffff;
+			this->_d3dDeviceContext->OMSetBlendState(currentBlend, factors, mask);
+		}
+	}
+	else
+	{
+		if (blend != currentBlend)
+		{
+			currentDesc = {};
+			currentBlend = blend;
+
+			static const FLOAT factors[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			UINT mask = 0xffffffff;
+			this->_d3dDeviceContext->OMSetBlendState(currentBlend, factors, mask);
+		}
+	}
+
+	return S_OK;
+}
+
+HRESULT DeviceResources::InitDepthStencilState(ID3D11DepthStencilState* depthState, D3D11_DEPTH_STENCIL_DESC* desc)
+{
+	static ID3D11DepthStencilState* currentDepthState = nullptr;
+	static D3D11_DEPTH_STENCIL_DESC currentDesc{};
+
+	if (depthState == nullptr)
+	{
+		if (memcmp(desc, &currentDesc, sizeof(D3D11_DEPTH_STENCIL_DESC)) != 0)
+		{
+			HRESULT hr;
+			ComPtr<ID3D11DepthStencilState> tempDepthState;
+			if (FAILED(hr = this->_d3dDevice->CreateDepthStencilState(desc, &tempDepthState)))
+				return hr;
+
+			currentDesc = *desc;
+			currentDepthState = tempDepthState;
+			this->_d3dDeviceContext->OMSetDepthStencilState(currentDepthState, 0);
+		}
+	}
+	else
+	{
+		if (depthState != currentDepthState)
+		{
+			currentDesc = {};
+			currentDepthState = depthState;
+			this->_d3dDeviceContext->OMSetDepthStencilState(currentDepthState, 0);
+		}
+	}
+
+	return S_OK;
+}
+
+void DeviceResources::InitVertexBuffer(ID3D11Buffer** buffer, UINT* stride, UINT* offset)
+{
+	static ID3D11Buffer** currentBuffer = nullptr;
+
+	if (buffer != currentBuffer)
+	{
+		currentBuffer = buffer;
+		this->_d3dDeviceContext->IASetVertexBuffers(0, 1, buffer, stride, offset);
+	}
+}
+
+void DeviceResources::InitIndexBuffer(ID3D11Buffer* buffer)
+{
+	static ID3D11Buffer* currentBuffer = nullptr;
+
+	if (buffer != currentBuffer)
+	{
+		currentBuffer = buffer;
+		this->_d3dDeviceContext->IASetIndexBuffer(buffer, DXGI_FORMAT_R16_UINT, 0);
+	}
+}
+
+void DeviceResources::InitViewport(D3D11_VIEWPORT* viewport)
+{
+	static D3D11_VIEWPORT currentViewport{};
+
+	if (memcmp(viewport, &currentViewport, sizeof(D3D11_VIEWPORT)) != 0)
+	{
+		currentViewport = *viewport;
+		this->_d3dDeviceContext->RSSetViewports(1, viewport);
+	}
+}
+
+void DeviceResources::InitConstantBuffer(ID3D11Buffer** buffer, const float* viewportScale)
+{
+	static ID3D11Buffer** currentBuffer = nullptr;
+	static float currentScale[4]{};
+
+	if (memcmp(viewportScale, currentScale, sizeof(currentScale)) != 0)
+	{
+		memcpy(currentScale, viewportScale, sizeof(currentScale));
+		this->_d3dDeviceContext->UpdateSubresource(buffer[0], 0, nullptr, viewportScale, 0, 0);
+	}
+
+	if (buffer != currentBuffer)
+	{
+		currentBuffer = buffer;
+		this->_d3dDeviceContext->VSSetConstantBuffers(0, 1, buffer);
+	}
+}
+
 HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD bpp, bool useColorKey)
 {
 	bool useMainDisplayTexture = (width == this->_displayWidth) && (height == this->_displayHeight);
@@ -853,10 +1066,10 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 		}
 	}
 
-	this->_d3dDeviceContext->IASetInputLayout(this->_mainInputLayout);
-	this->_d3dDeviceContext->VSSetShader(this->_mainVertexShader, nullptr, 0);
-	this->_d3dDeviceContext->PSSetShader(this->_mainPixelShader, nullptr, 0);
-	this->_d3dDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->InitInputLayout(this->_mainInputLayout);
+	this->InitVertexShader(this->_mainVertexShader);
+	this->InitPixelShader(this->_mainPixelShader);
+	this->InitTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	UINT w;
 	UINT h;
@@ -891,16 +1104,13 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 	viewport.MinDepth = D3D11_MIN_DEPTH;
 	viewport.MaxDepth = D3D11_MAX_DEPTH;
 
-	this->_d3dDeviceContext->RSSetViewports(1, &viewport);
+	this->InitViewport(&viewport);
 
 	if (SUCCEEDED(hr))
 	{
 		step = "States";
-
-		this->_d3dDeviceContext->RSSetState(this->_mainRasterizerState);
-
-		this->_d3dDeviceContext->PSSetSamplers(0, 1, this->_mainSamplerState.GetAddressOf());
-
+		this->InitRasterizerState(this->_mainRasterizerState);
+		this->InitSamplerState(this->_mainSamplerState.GetAddressOf(), nullptr);
 		if (g_config.ScalingType && g_config.ScalingType != 3)
 		{
 			float texsize[4] = { static_cast<float>(width), static_cast<float>(height) };
@@ -921,12 +1131,8 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 
 			this->_d3dDeviceContext->PSSetConstantBuffers(0, 1, &texsizeBuf);
 		}
-
-		const FLOAT factors[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		UINT mask = 0xffffffff;
-		this->_d3dDeviceContext->OMSetBlendState(this->_mainBlendState, factors, mask);
-
-		this->_d3dDeviceContext->OMSetDepthStencilState(this->_mainDepthState, 0);
+		this->InitBlendState(this->_mainBlendState, nullptr);
+		this->InitDepthStencilState(this->_mainDepthState, nullptr);
 	}
 
 	if (SUCCEEDED(hr))
@@ -950,8 +1156,8 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 		UINT stride = sizeof(MainVertex);
 		UINT offset = 0;
 
-		this->_d3dDeviceContext->IASetVertexBuffers(0, 1, this->_mainVertexBuffer.GetAddressOf(), &stride, &offset);
-		this->_d3dDeviceContext->IASetIndexBuffer(this->_mainIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+		this->InitVertexBuffer(this->_mainVertexBuffer.GetAddressOf(), &stride, &offset);
+		this->InitIndexBuffer(this->_mainIndexBuffer);
 		this->_d3dDeviceContext->DrawIndexed(6, 0, 0);
 	}
 
