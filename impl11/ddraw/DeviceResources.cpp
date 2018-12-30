@@ -946,8 +946,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 					}
 
 					srcColors += width;
-					colors += width;
-					colors = (unsigned int*)((char*)colors + pitchDelta);
+					colors = (unsigned int*)((char*)(colors + width) + pitchDelta);
 				}
 			}
 			else
@@ -959,14 +958,13 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 				{
 					for (DWORD x = 0; x < width; x++)
 					{
-						unsigned short color16 = *srcColors;
-						srcColors++;
+						unsigned short color16 = srcColors[x];
 
-						*colors = convertColorB5G6R5toB8G8R8X8(color16);
-						colors++;
+						colors[x] = convertColorB5G6R5toB8G8R8X8(color16);
 					}
 
-					colors = (unsigned int*)((char*)colors + pitchDelta);
+					srcColors += width;
+					colors = (unsigned int*)((char*)(colors + width) + pitchDelta);
 				}
 			}
 		}
@@ -977,26 +975,42 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 				unsigned int* srcColors = (unsigned int*)src;
 				unsigned int* colors = (unsigned int*)buffer;
 
+				__m128i key = _mm_set1_epi32(0x200000);
+				__m128i colorMask = _mm_set1_epi32(0xffffff);
+
 				for (DWORD y = 0; y < height; y++)
 				{
-					for (DWORD x = 0; x < width; x++)
+					//for (DWORD x = 0; x < width; x++)
+					//{
+					//	unsigned int color32 = srcColors[x];
+
+					//	if (color32 == 0x200000)
+					//	{
+					//		colors[x] = 0xff000000;
+					//	}
+					//	else
+					//	{
+					//		colors[x] = color32 & 0xffffff;
+					//	}
+					//}
+
+
+					for (DWORD x = 0; x < width; x += 4)
 					{
-						unsigned int color32 = *srcColors;
-						srcColors++;
+						__m128i color = _mm_load_si128((const __m128i*)(srcColors + x));
+						__m128i transparent = _mm_cmpeq_epi32(color, key);
 
-						if (color32 == 0x200000)
-						{
-							*colors = 0xff000000;
-						}
-						else
-						{
-							*colors = color32 & 0xffffff;
-						}
+						color = _mm_andnot_si128(transparent, color);
+						color = _mm_and_si128(color, colorMask);
 
-						colors++;
+						transparent = _mm_slli_epi32(transparent, 24);
+
+						color = _mm_or_si128(color, transparent);
+						_mm_store_si128((__m128i*)(colors + x), color);
 					}
 
-					colors = (unsigned int*)((char*)colors + pitchDelta);
+					srcColors += width;
+					colors = (unsigned int*)((char*)(colors + width) + pitchDelta);
 				}
 			}
 			else
@@ -1014,9 +1028,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 					{
 						memcpy(colors, srcColors, width * 4);
 						srcColors += width;
-						colors += width;
-
-						colors = (unsigned int*)((char*)colors + pitchDelta);
+						colors = (unsigned int*)((char*)(colors + width) + pitchDelta);
 					}
 				}
 			}
