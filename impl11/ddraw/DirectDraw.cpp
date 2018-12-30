@@ -709,7 +709,8 @@ HRESULT DirectDraw::SetCooperativeLevel(
 		LONG old = GetWindowLong(hWnd, GWL_STYLE);
 		SetWindowLong(hWnd, GWL_STYLE, old | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 		SetWindowLong(hWnd, GWL_EXSTYLE, WS_EX_OVERLAPPEDWINDOW);
-		savedWndProc = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
+		LONG oldWndProc = GetWindowLong(hWnd, GWL_WNDPROC);
+		if (oldWndProc != (LONG)WndProc) savedWndProc = (WNDPROC)oldWndProc;
 		SetWindowLong(hWnd, GWL_WNDPROC, (LONG)WndProc);
 		SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 	}
