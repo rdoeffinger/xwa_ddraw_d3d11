@@ -162,13 +162,15 @@ HRESULT Direct3DExecuteBuffer::Lock(
 				__m128i color16 = _mm_loadu_si128((const __m128i *)(buffer16 + i - 16));
 				__m128i color16_2 = _mm_loadu_si128((const __m128i *)(buffer16 + i - 8));
 				__m128i transparent = _mm_cmpeq_epi16(color16, _mm_set1_epi16(0));
-				color16 = _mm_andnot_si128(transparent, color16);
+				// no need to mask off on comparison match as it is already 0
+				// color16 = _mm_andnot_si128(transparent, color16);
 				transparent = _mm_and_si128(transparent, _mm_set1_epi16(0x2000));
 				color16 = _mm_or_si128(color16, transparent);
 				_mm_storeu_si128((__m128i *)(buffer16 + i - 16), color16);
 
 				transparent = _mm_cmpeq_epi16(color16_2, _mm_set1_epi16(0));
-				color16_2 = _mm_andnot_si128(transparent, color16_2);
+				// no need to mask off on comparison match as it is already 0
+				// color16_2 = _mm_andnot_si128(transparent, color16_2);
 				transparent = _mm_and_si128(transparent, _mm_set1_epi16(0x2000));
 				color16_2 = _mm_or_si128(color16_2, transparent);
 				_mm_storeu_si128((__m128i *)(buffer16 + i - 8), color16_2);
