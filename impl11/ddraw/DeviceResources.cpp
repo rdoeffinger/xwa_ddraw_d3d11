@@ -354,7 +354,7 @@ HRESULT DeviceResources::OnSizeChanged(HWND hWnd, DWORD dwWidth, DWORD dwHeight)
 		viewport.MinDepth = D3D11_MIN_DEPTH;
 		viewport.MaxDepth = D3D11_MAX_DEPTH;
 
-		this->_d3dDeviceContext->RSSetViewports(1, &viewport);
+		this->InitViewport(&viewport);
 	}
 
 	if (SUCCEEDED(hr))
