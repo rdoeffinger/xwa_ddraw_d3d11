@@ -74,6 +74,11 @@ public:
 	ComPtr<ID3D11Texture2D> _mainDisplayTexture;
 	ComPtr<ID3D11ShaderResourceView> _mainDisplayTextureView;
 
+	ComPtr<ID3D11Texture2D> _tempTexture;
+	ComPtr<ID3D11ShaderResourceView> _tempTextureView;
+	DWORD _tempTextureWidth;
+	DWORD _tempTextureHeight;
+
 	ComPtr<ID3D11VertexShader> _vertexShader;
 	ComPtr<ID3D11InputLayout> _inputLayout;
 	ComPtr<ID3D11PixelShader> _pixelShaderTexture;

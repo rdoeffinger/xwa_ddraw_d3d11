@@ -56,6 +56,8 @@ DeviceResources::DeviceResources()
 	this->_displayWidth = 0;
 	this->_displayHeight = 0;
 	this->_displayBpp = 0;
+	this->_tempTextureWidth = 0;
+	this->_tempTextureHeight = 0;
 
 	this->_d3dDriverType = D3D_DRIVER_TYPE_UNKNOWN;
 	this->_d3dFeatureLevel = D3D_FEATURE_LEVEL_9_1;
@@ -828,38 +830,67 @@ void DeviceResources::InitConstantBuffer(ID3D11Buffer** buffer, const float* vie
 
 HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD bpp, bool useColorKey)
 {
-	bool useMainDisplayTexture = (width == this->_displayWidth) && (height == this->_displayHeight);
-
 	HRESULT hr = S_OK;
 	const char* step = "";
 
 	D3D11_MAPPED_SUBRESOURCE displayMap;
-	char* tempBuffer = nullptr;
-	ComPtr<ID3D11Texture2D> tempTexture;
-	ComPtr<ID3D11ShaderResourceView> tempTextureView;
 	DWORD pitchDelta;
 
 	void* buffer = nullptr;
 
-	if (SUCCEEDED(hr))
+	ID3D11Texture2D *tex = nullptr;
+	ID3D11ShaderResourceView **texview = nullptr;
+	if (width == this->_displayWidth && height == this->_displayHeight && bpp == 4)
 	{
-		if (useMainDisplayTexture)
+		tex = this->_mainDisplayTexture;
+		texview = this->_mainDisplayTextureView.GetAddressOf();
+	}
+	else
+	{
+		// We try to cache the texture for better performance
+		if (width != this->_tempTextureWidth || height != this->_tempTextureHeight)
 		{
-			step = "DisplayTexture";
-			hr = this->_d3dDeviceContext->Map(this->_mainDisplayTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &displayMap);
+			D3D11_TEXTURE2D_DESC textureDesc;
+			textureDesc.Width = width;
+			textureDesc.Height = height;
+			textureDesc.Format = bpp == 2 ? DXGI_FORMAT_B5G6R5_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
+			textureDesc.Usage = D3D11_USAGE_DYNAMIC;
+			textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			textureDesc.MiscFlags = 0;
+			textureDesc.MipLevels = 1;
+			textureDesc.ArraySize = 1;
+			textureDesc.SampleDesc.Count = 1;
+			textureDesc.SampleDesc.Quality = 0;
+			textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+			hr = this->_d3dDevice->CreateTexture2D(&textureDesc, nullptr, &this->_tempTexture);
 
 			if (SUCCEEDED(hr))
 			{
-				buffer = displayMap.pData;
-				pitchDelta = displayMap.RowPitch - width * 4;
+				D3D11_SHADER_RESOURCE_VIEW_DESC textureViewDesc{};
+				textureViewDesc.Format = bpp == 2 ? DXGI_FORMAT_B5G6R5_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
+				textureViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				textureViewDesc.Texture2D.MipLevels = 1;
+				textureViewDesc.Texture2D.MostDetailedMip = 0;
+
+				hr = this->_d3dDevice->CreateShaderResourceView(this->_tempTexture, &textureViewDesc, &this->_tempTextureView);
 			}
+			this->_tempTextureWidth = width;
+			this->_tempTextureHeight = height;
 		}
-		else
+		tex = this->_tempTexture;
+		texview = this->_tempTextureView.GetAddressOf();
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		step = "DisplayTexture";
+		hr = this->_d3dDeviceContext->Map(tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &displayMap);
+
+		if (SUCCEEDED(hr))
 		{
-			step = "tempTexture";
-			tempBuffer = new char[width * height * 4];
-			buffer = tempBuffer;
-			pitchDelta = 0;
+			buffer = displayMap.pData;
+			pitchDelta = displayMap.RowPitch - width * bpp;
 		}
 	}
 
@@ -896,9 +927,9 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 			}
 
 		}
-		else if(bpp == 2)
+		else if(0 && bpp == 2)
 		{
-			if (useColorKey)
+			if (0 && useColorKey)
 			{
 				unsigned short* srcColors = (unsigned short*)src;
 				unsigned int* colors = (unsigned int*)buffer;
@@ -972,7 +1003,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 		}
 		else
 		{
-			if (useColorKey)
+			if (0 && useColorKey)
 			{
 				unsigned int* srcColors = (unsigned int*)src;
 				unsigned int* colors = (unsigned int*)buffer;
@@ -1019,7 +1050,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 			{
 				if (pitchDelta == 0)
 				{
-					memcpy(buffer, src, width * height * 4);
+					memcpy(buffer, src, width * height * bpp);
 				}
 				else
 				{
@@ -1028,7 +1059,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 
 					for (DWORD y = 0; y < height; y++)
 					{
-						memcpy(colors, srcColors, width * 4);
+						memcpy(colors, srcColors, width * bpp);
 						srcColors += width;
 						colors = (unsigned int*)((char*)(colors + width) + pitchDelta);
 					}
@@ -1039,45 +1070,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 
 	if (SUCCEEDED(hr))
 	{
-		if (useMainDisplayTexture)
-		{
-			this->_d3dDeviceContext->Unmap(this->_mainDisplayTexture, 0);
-		}
-		else
-		{
-			D3D11_TEXTURE2D_DESC textureDesc;
-			textureDesc.Width = width;
-			textureDesc.Height = height;
-			textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-			textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
-			textureDesc.CPUAccessFlags = 0;
-			textureDesc.MiscFlags = 0;
-			textureDesc.MipLevels = 1;
-			textureDesc.ArraySize = 1;
-			textureDesc.SampleDesc.Count = 1;
-			textureDesc.SampleDesc.Quality = 0;
-			textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-			D3D11_SUBRESOURCE_DATA textureData;
-			textureData.pSysMem = tempBuffer;
-			textureData.SysMemPitch = width * 4;
-			textureData.SysMemSlicePitch = 0;
-
-			hr = this->_d3dDevice->CreateTexture2D(&textureDesc, &textureData, &tempTexture);
-
-			delete[] tempBuffer;
-
-			if (SUCCEEDED(hr))
-			{
-				D3D11_SHADER_RESOURCE_VIEW_DESC textureViewDesc{};
-				textureViewDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-				textureViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-				textureViewDesc.Texture2D.MipLevels = 1;
-				textureViewDesc.Texture2D.MostDetailedMip = 0;
-
-				hr = this->_d3dDevice->CreateShaderResourceView(tempTexture, &textureViewDesc, &tempTextureView);
-			}
-		}
+		this->_d3dDeviceContext->Unmap(tex, 0);
 	}
 
 	this->InitInputLayout(this->_mainInputLayout);
@@ -1125,7 +1118,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 		step = "States";
 		this->InitRasterizerState(this->_mainRasterizerState);
 		this->InitSamplerState(this->_mainSamplerState.GetAddressOf(), nullptr);
-		if (g_config.ScalingType && g_config.ScalingType != 3)
+		if (1 || (g_config.ScalingType && g_config.ScalingType != 3))
 		{
 			float texsize[4] = { static_cast<float>(width), static_cast<float>(height) };
 			D3D11_BUFFER_DESC cbDesc;
@@ -1153,14 +1146,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 	{
 		step = "Texture2D ShaderResourceView";
 
-		if (useMainDisplayTexture)
-		{
-			this->_d3dDeviceContext->PSSetShaderResources(0, 1, this->_mainDisplayTextureView.GetAddressOf());
-		}
-		else
-		{
-			this->_d3dDeviceContext->PSSetShaderResources(0, 1, tempTextureView.GetAddressOf());
-		}
+		this->_d3dDeviceContext->PSSetShaderResources(0, 1, texview);
 	}
 
 	if (SUCCEEDED(hr))
