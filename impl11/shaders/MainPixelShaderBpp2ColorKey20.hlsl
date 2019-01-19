@@ -27,5 +27,5 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	float4 texelColor = texture0.Sample(sampler0, input.tex);
 
-	return float4(texelColor.xyz, 1.0f);
+	return float4(texelColor.xyz, 0.0f);
 }
