@@ -4,7 +4,6 @@
 
 Texture2D texture0 : register(t0);
 SamplerState sampler0 : register(s0);
-float2 texSize : register(b0);
 
 struct PixelShaderInput
 {
@@ -25,6 +24,9 @@ float L(float d)
 
 float4 main(PixelShaderInput input) : SV_TARGET
 {
+	float2 texSize;
+	texture0.GetDimensions(texSize.x, texSize.y);
+
 	float2 coord = input.tex * texSize - float2(0.5, 0.5);
 	float2 fpart = frac(coord);
 	int2 base = floor(coord);

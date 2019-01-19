@@ -151,7 +151,7 @@ HRESULT DeviceResources::Initialize()
 			&& this->IsTextureFormatSupported(DXGI_FORMAT_B5G5R5A1_UNORM)
 			&& this->IsTextureFormatSupported(DXGI_FORMAT_B5G6R5_UNORM);
 
-		this->_use16BppMainDisplayTexture = this->_are16BppTexturesSupported && (this->_d3dFeatureLevel >= D3D_FEATURE_LEVEL_10_0);
+		this->_use16BppMainDisplayTexture = this->_are16BppTexturesSupported && (this->_d3dFeatureLevel >= D3D_FEATURE_LEVEL_10_0) && (g_config.ScalingType == 0 || g_config.ScalingType == 3);
 	}
 
 	if (SUCCEEDED(hr))
@@ -1225,26 +1225,6 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 		step = "States";
 		this->InitRasterizerState(this->_mainRasterizerState);
 		this->InitSamplerState(this->_mainSamplerState.GetAddressOf(), nullptr);
-		if (g_config.ScalingType && g_config.ScalingType != 3)
-		{
-			float texsize[4] = { static_cast<float>(width), static_cast<float>(height) };
-			D3D11_BUFFER_DESC cbDesc;
-			cbDesc.ByteWidth = 16; // We only use 8, but 16 is the minimum
-			cbDesc.Usage = D3D11_USAGE_IMMUTABLE;
-			cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			cbDesc.CPUAccessFlags = 0;
-			cbDesc.MiscFlags = 0;
-			cbDesc.StructureByteStride = 0;
-			D3D11_SUBRESOURCE_DATA InitData;
-			InitData.pSysMem = texsize;
-			InitData.SysMemPitch = 0;
-			InitData.SysMemSlicePitch = 0;
-
-			ID3D11Buffer *texsizeBuf = NULL;
-			hr = this->_d3dDevice->CreateBuffer(&cbDesc, &InitData, &texsizeBuf);
-
-			this->_d3dDeviceContext->PSSetConstantBuffers(0, 1, &texsizeBuf);
-		}
 		this->InitBlendState(this->_mainBlendState, nullptr);
 		this->InitDepthStencilState(this->_mainDepthState, nullptr);
 	}

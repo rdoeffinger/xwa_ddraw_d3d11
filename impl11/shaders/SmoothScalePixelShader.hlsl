@@ -4,7 +4,6 @@
 
 Texture2D texture0 : register(t0);
 SamplerState sampler0 : register(s0);
-float2 texSize : register(b0);
 
 struct PixelShaderInput
 {
@@ -24,6 +23,8 @@ float3 calc_sample_offsets(float coord)
 
 float4 main(PixelShaderInput input) : SV_TARGET
 {
+	float2 texSize;
+	texture0.GetDimensions(texSize.x, texSize.y);
 	float2 coord = frac(input.tex * texSize + float2(0.5, 0.5));
 	float3 offsetx = calc_sample_offsets(coord.x);
     offsetx.xy /= float2(-texSize.x, texSize.x);
