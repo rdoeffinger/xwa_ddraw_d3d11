@@ -3,6 +3,13 @@
 
 #pragma once
 
+enum RenderMainColorKeyType
+{
+	RENDERMAIN_NO_COLORKEY,
+	RENDERMAIN_COLORKEY_20,
+	RENDERMAIN_COLORKEY_00,
+};
+
 class PrimarySurface;
 class DepthSurface;
 class BackbufferSurface;
@@ -36,7 +43,7 @@ public:
 	void InitViewport(D3D11_VIEWPORT* viewport);
 	void InitConstantBuffer(ID3D11Buffer** buffer, const float* viewportScale);
 
-	HRESULT RenderMain(char* buffer, DWORD width, DWORD height, DWORD bpp, bool useColorKey = true);
+	HRESULT RenderMain(char* buffer, DWORD width, DWORD height, DWORD bpp, RenderMainColorKeyType useColorKey = RENDERMAIN_COLORKEY_20);
 
 	HRESULT RetrieveBackBuffer(char* buffer, DWORD width, DWORD height, DWORD bpp);
 
@@ -46,9 +53,14 @@ public:
 
 	void DefaultSurfaceDesc(LPDDSURFACEDESC, DWORD caps);
 
+	bool IsTextureFormatSupported(DXGI_FORMAT format);
+
 	DWORD _displayWidth;
 	DWORD _displayHeight;
 	DWORD _displayBpp;
+	DWORD _displayTempWidth;
+	DWORD _displayTempHeight;
+	DWORD _displayTempBpp;
 
 	D3D_DRIVER_TYPE _d3dDriverType;
 	D3D_FEATURE_LEVEL _d3dFeatureLevel;
@@ -65,6 +77,9 @@ public:
 	ComPtr<ID3D11VertexShader> _mainVertexShader;
 	ComPtr<ID3D11InputLayout> _mainInputLayout;
 	ComPtr<ID3D11PixelShader> _mainPixelShader;
+	ComPtr<ID3D11PixelShader> _mainPixelShaderBpp2ColorKey20;
+	ComPtr<ID3D11PixelShader> _mainPixelShaderBpp2ColorKey00;
+	ComPtr<ID3D11PixelShader> _mainPixelShaderBpp4ColorKey20;
 	ComPtr<ID3D11RasterizerState> _mainRasterizerState;
 	ComPtr<ID3D11SamplerState> _mainSamplerState;
 	ComPtr<ID3D11BlendState> _mainBlendState;
@@ -73,6 +88,8 @@ public:
 	ComPtr<ID3D11Buffer> _mainIndexBuffer;
 	ComPtr<ID3D11Texture2D> _mainDisplayTexture;
 	ComPtr<ID3D11ShaderResourceView> _mainDisplayTextureView;
+	ComPtr<ID3D11Texture2D> _mainDisplayTextureTemp;
+	ComPtr<ID3D11ShaderResourceView> _mainDisplayTextureViewTemp;
 
 	ComPtr<ID3D11VertexShader> _vertexShader;
 	ComPtr<ID3D11InputLayout> _inputLayout;
@@ -89,6 +106,9 @@ public:
 	UINT _backbufferWidth;
 	UINT _backbufferHeight;
 	DXGI_RATIONAL _refreshRate;
+	bool _are16BppTexturesSupported;
+	bool _use16BppMainDisplayTexture;
+	DWORD _mainDisplayTextureBpp;
 
 	float clearColor[4];
 	bool clearColorSet;

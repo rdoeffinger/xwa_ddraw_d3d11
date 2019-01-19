@@ -278,7 +278,7 @@ HRESULT Direct3DTexture::Load(
 	D3D11_TEXTURE2D_DESC textureDesc;
 	textureDesc.Width = surface->_width;
 	textureDesc.Height = surface->_height;
-	textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	textureDesc.Format = this->_deviceResources->_are16BppTexturesSupported || format == DXGI_FORMAT_B8G8R8A8_UNORM ? format : DXGI_FORMAT_B8G8R8A8_UNORM;
 	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MiscFlags = 0;
@@ -289,21 +289,30 @@ HRESULT Direct3DTexture::Load(
 	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
 	D3D11_SUBRESOURCE_DATA* textureData = new D3D11_SUBRESOURCE_DATA[textureDesc.MipLevels];
-	char** buffers = new char*[textureDesc.MipLevels];
 
-	buffers[0] = convertFormat(surface->_buffer, surface->_width, surface->_height, format, this->_surface->hasColorKey, this->_surface->colorKey);
+	bool useBuffers = !this->_deviceResources->_are16BppTexturesSupported && format != DXGI_FORMAT_B8G8R8A8_UNORM;
+	char** buffers = nullptr;
 
-	textureData[0].pSysMem = buffers[0];
-	textureData[0].SysMemPitch = surface->_width * 4;
+	if (useBuffers)
+	{
+		buffers = new char*[textureDesc.MipLevels];
+		buffers[0] = convertFormat(surface->_buffer, surface->_width, surface->_height, format, this->_surface->hasColorKey, this->_surface->colorKey);
+	}
+
+	textureData[0].pSysMem = useBuffers ? buffers[0] : surface->_buffer;
+	textureData[0].SysMemPitch = surface->_width * (useBuffers ? 4 : bpp);
 	textureData[0].SysMemSlicePitch = 0;
 
 	MipmapSurface* mipmap = surface->_mipmap;
 	for (DWORD i = 1; i < textureDesc.MipLevels; i++)
 	{
-		buffers[i] = convertFormat(mipmap->_buffer, mipmap->_width, mipmap->_height, format, this->_surface->hasColorKey, this->_surface->colorKey);
+		if (useBuffers)
+		{
+			buffers[i] = convertFormat(mipmap->_buffer, mipmap->_width, mipmap->_height, format, this->_surface->hasColorKey, this->_surface->colorKey);
+		}
 
-		textureData[i].pSysMem = buffers[i];
-		textureData[i].SysMemPitch = mipmap->_width * 4;
+		textureData[i].pSysMem = useBuffers ? buffers[i] : mipmap->_buffer;
+		textureData[i].SysMemPitch = mipmap->_width * (useBuffers ? 4 : bpp);
 		textureData[i].SysMemSlicePitch = 0;
 
 		mipmap = mipmap->_mipmap;
@@ -330,12 +339,16 @@ HRESULT Direct3DTexture::Load(
 	ComPtr<ID3D11Texture2D> texture;
 	HRESULT hr = this->_deviceResources->_d3dDevice->CreateTexture2D(&textureDesc, textureData, &texture);
 
-	for (DWORD i = 0; i < textureDesc.MipLevels; i++)
+	if (useBuffers)
 	{
-		delete[] buffers[i];
+		for (DWORD i = 0; i < textureDesc.MipLevels; i++)
+		{
+			delete[] buffers[i];
+		}
+
+		delete[] buffers;
 	}
 
-	delete[] buffers;
 	delete[] textureData;
 
 	if (FAILED(hr))

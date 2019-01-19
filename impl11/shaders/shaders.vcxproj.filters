@@ -24,5 +24,8 @@
     <FxCompile Include="SmoothScalePixelShader.hlsl" />
     <FxCompile Include="LanczosScalePixelShader.hlsl" />
     <FxCompile Include="PixelShaderAtestTextureNoAlpha.hlsl" />
+    <FxCompile Include="MainPixelShaderBpp2ColorKey20.hlsl" />
+    <FxCompile Include="MainPixelShaderBpp4ColorKey20.hlsl" />
+    <FxCompile Include="MainPixelShaderBpp2ColorKey00.hlsl" />
   </ItemGroup>
 </Project>
