@@ -21,8 +21,10 @@ static int needsJoyEmul()
 	JOYCAPS caps = {};
 	if (joyGetDevCaps(0, &caps, sizeof(caps)) != JOYERR_NOERROR ||
 	    !(caps.wCaps & JOYCAPS_HASZ) || caps.wNumAxes <= 2 ||
-	    // Steam controller
-	    (caps.wMid == 0x45e && caps.wPid == 0x28e))
+	    // Assume for now that wMid == 0x45e means "Gamepad"
+	    // Steam controller: pid == 0x28e
+	    // Xbox controller: pid == 0x2ff
+	    caps.wMid == 0x45e)
 	{
 		// Probably the joystick is just an emulation from a gamepad.
 		// Rather try to use it as gamepad directly then.
