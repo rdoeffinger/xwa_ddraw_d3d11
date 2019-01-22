@@ -64,8 +64,8 @@ UINT WINAPI emulJoyGetDevCaps(UINT_PTR joy, struct tagJOYCAPSA *pjc, UINT size)
 		pjc->wRmax = 65536;
 		pjc->wUmax = 65536;
 		pjc->wVmax = 255;
-		pjc->wNumButtons = 12;
-		pjc->wMaxButtons = 12;
+		pjc->wNumButtons = 14;
+		pjc->wMaxButtons = 14;
 		pjc->wNumAxes = 6;
 		pjc->wMaxAxes = 6;
 		pjc->wCaps = JOYCAPS_HASZ | JOYCAPS_HASR | JOYCAPS_HASU | JOYCAPS_HASV | JOYCAPS_HASPOV | JOYCAPS_POV4DIR;
@@ -126,15 +126,23 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 		pji->dwUpos = state.Gamepad.sThumbRY + 32768;
 		pji->dwVpos = state.Gamepad.bLeftTrigger;
 		pji->dwButtons = 0;
-		// Triggers first
-		if (state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 1;
-		if (state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 2;
-		// Thumb and shoulder buttons next
-		pji->dwButtons |= (state.Gamepad.wButtons & 0x3c0) >> 4;
-		// A, B, X, Y
-		pji->dwButtons |= (state.Gamepad.wButtons & 0xf000) >> 6;
-		// start and back
-		pji->dwButtons |= (state.Gamepad.wButtons & 0x30) << 6;
+		// Order matches XBox One controller joystick emulation default
+		// A, B, X, Y first
+		pji->dwButtons |= (state.Gamepad.wButtons & 0xf000) >> 12;
+		// Shoulder buttons next
+		pji->dwButtons |= (state.Gamepad.wButtons & 0x300) >> 4;
+		// start and back, for some reason in flipped order compared to XINPUT
+		pji->dwButtons |= (state.Gamepad.wButtons & 0x10) << 3;
+		pji->dwButtons |= (state.Gamepad.wButtons & 0x20) << 1;
+		// Thumb buttons
+		pji->dwButtons |= (state.Gamepad.wButtons & 0xc0) << 2;
+		// Triggers last, they are not mapped in the joystick emulation
+		if (state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 0x400;
+		if (state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 0x800;
+		// These are not defined by XINPUT, and can't be remapped by the
+		// XWA user interface as they will be buttons above 12, but map them just in case
+		pji->dwButtons |= (state.Gamepad.wButtons & 0xc00) << 2;
+
 		// XWA can map only 12 buttons, so map dpad to POV
 		pji->dwPOV = povmap[state.Gamepad.wButtons & 15];
 
