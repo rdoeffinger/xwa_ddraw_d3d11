@@ -18,8 +18,17 @@
 
 static int needsJoyEmul()
 {
-	XINPUT_STATE state;
-	if (XInputGetState(0, &state) == ERROR_SUCCESS) return 2;
+	JOYCAPS caps = {};
+	if (joyGetDevCaps(0, &caps, sizeof(caps)) != JOYERR_NOERROR ||
+	    !(caps.wCaps & JOYCAPS_HASZ) || caps.wNumAxes <= 2 ||
+	    // Steam controller
+	    (caps.wMid == 0x45e && caps.wPid == 0x28e))
+	{
+		// Probably the joystick is just an emulation from a gamepad.
+		// Rather try to use it as gamepad directly then.
+		XINPUT_STATE state;
+		if (XInputGetState(0, &state) == ERROR_SUCCESS) return 2;
+	}
 	UINT cnt = joyGetNumDevs();
 	for (unsigned i = 0; i < cnt; ++i)
 	{
