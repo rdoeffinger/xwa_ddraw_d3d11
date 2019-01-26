@@ -19,6 +19,7 @@ public:
 	int Width;
 	int Height;
 	int JoystickEmul;
+	int XInputTriggerAsThrottle;
 	bool InvertYAxis;
 	float MouseSensitivity;
 	float KbdSensitivity;

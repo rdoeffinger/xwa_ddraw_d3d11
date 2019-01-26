@@ -36,6 +36,7 @@ Config::Config()
 	this->Width = 0;
 	this->Height = 0;
 	this->JoystickEmul = -1;
+	this->XInputTriggerAsThrottle = 0;
 	this->InvertYAxis = false;
 	this->MouseSensitivity = 0.5f;
 	this->KbdSensitivity = 1.0f;
@@ -172,6 +173,10 @@ Config::Config()
 			else if (name == "RefreshLimit")
 			{
 				this->RefreshLimit = stoi(value);
+			}
+			else if (name == "XInputTriggerAsThrottle")
+			{
+				this->XInputTriggerAsThrottle = stoi(value);
 			}
 		}
 	}

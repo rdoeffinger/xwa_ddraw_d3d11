@@ -132,7 +132,10 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 		if (!g_config.InvertYAxis) pji->dwYpos = 65536 - pji->dwYpos;
 		// The 65536 value breaks XWA with in-game invert Y axis option
 		pji->dwYpos = std::min(pji->dwYpos, DWORD(65535));
-		pji->dwZpos = state.Gamepad.bRightTrigger;
+		if (g_config.XInputTriggerAsThrottle)
+		{
+			pji->dwZpos = g_config.XInputTriggerAsThrottle & 1 ? state.Gamepad.bLeftTrigger : state.Gamepad.bRightTrigger;
+		}
 		pji->dwRpos = state.Gamepad.sThumbRX + 32768;
 		pji->dwUpos = state.Gamepad.sThumbRY + 32768;
 		pji->dwVpos = state.Gamepad.bLeftTrigger;
@@ -148,8 +151,10 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 		// Thumb buttons
 		pji->dwButtons |= (state.Gamepad.wButtons & 0xc0) << 2;
 		// Triggers last, they are not mapped in the joystick emulation
-		if (state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 0x400;
-		if (state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 0x800;
+		if (g_config.XInputTriggerAsThrottle != 1 &&
+		    state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 0x400;
+		if (g_config.XInputTriggerAsThrottle != 2 &&
+		    state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) pji->dwButtons |= 0x800;
 		// These are not defined by XINPUT, and can't be remapped by the
 		// XWA user interface as they will be buttons above 12, but map them just in case
 		pji->dwButtons |= (state.Gamepad.wButtons & 0xc00) << 2;
