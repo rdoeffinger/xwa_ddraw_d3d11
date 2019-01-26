@@ -7,6 +7,7 @@
 
 DirectDraw2::DirectDraw2(DeviceResources* deviceResources)
 {
+	g_config.runAutopatch();
 	this->_refCount = 1;
 	this->_deviceResources = deviceResources;
 }

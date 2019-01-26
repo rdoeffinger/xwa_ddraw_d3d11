@@ -8,6 +8,9 @@ class Config
 public:
 	Config();
 
+	// delayed autopatch, run when we are sure binary is decrypted (for Steam version)
+	void runAutopatch();
+
 	bool AspectRatioPreserved;
 	bool MultisamplingAntialiasingEnabled;
 	bool AnisotropicFilteringEnabled;
@@ -31,6 +34,9 @@ public:
 
 	int PresentSleepTime;
 	int RefreshLimit;
+
+	int AutoPatch;
+	bool RuntimeAutoPatchDone;
 };
 
 extern Config g_config;

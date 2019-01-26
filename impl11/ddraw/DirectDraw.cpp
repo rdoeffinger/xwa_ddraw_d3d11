@@ -16,6 +16,7 @@
 
 DirectDraw::DirectDraw(DeviceResources* deviceResources)
 {
+	g_config.runAutopatch();
 	this->_refCount = 1;
 	this->_deviceResources = deviceResources;
 	this->_hWnd = NULL;

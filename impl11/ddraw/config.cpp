@@ -43,7 +43,8 @@ Config::Config()
 	this->XWAMode = true;
 	int XWAModeInt = -1;
 	int ProcessAffinity = -1;
-	int AutoPatch = 2;
+	this->AutoPatch = 2;
+	this->RuntimeAutoPatchDone = false;
 
 	this->Concourse3DScale = 0.6f;
 
@@ -217,17 +218,6 @@ Config::Config()
 	if (AutoPatch >= 1 && isTIE && *(const unsigned *)0x4f3e54 == 0x74666f73u) {
 		*(unsigned *)0x4f3e54 = 0;
 	}
-	// ISD laser fix, not tested (esp. with Steam version)
-	if (AutoPatch >= 2 && isTIE &&
-		*(const unsigned long long *)0x4df898 == 0x3735353433323130ull &&
-		*(const unsigned long long *)0x4f0830 == 0x0400210045003443ull &&
-		*(const unsigned long long *)0x4f0844 == 0x0103000235430000ull &&
-		*(const unsigned long long *)0x4f084c == 0x000003840c1c0300ull) {
-		*(unsigned long long *)0x4df898 = 0x3736363433323130ull;
-		*(unsigned long long *)0x4f0830 = 0x0400210345003443ull;
-		*(unsigned long long *)0x4f0844 = 0x2103450034430000ull;
-		*(unsigned long long *)0x4f084c = 0x00007d00fa000400ull;
-	}
 
 	if (this->JoystickEmul != 0 && isXWing)
 	{
@@ -298,4 +288,37 @@ Config::Config()
 	}
 
 	DisableProcessWindowsGhosting();
+}
+
+void Config::runAutopatch()
+{
+	if (RuntimeAutoPatchDone) return;
+	RuntimeAutoPatchDone = true;
+	// ISD laser fix, not tested (esp. with Steam version)
+	if (AutoPatch >= 2 && isTIE &&
+		*(const unsigned long long *)0x4df898 == 0x3735353433323130ull &&
+		*(const unsigned long long *)0x4f0830 == 0x0400210045003443ull &&
+		*(const unsigned long long *)0x4f0844 == 0x0103000235430000ull &&
+		*(const unsigned long long *)0x4f084c == 0x000003840c1c0300ull) {
+		*(unsigned long long *)0x4df898 = 0x3736363433323130ull;
+		*(unsigned long long *)0x4f0830 = 0x0400210345003443ull;
+		*(unsigned long long *)0x4f0844 = 0x2103450034430000ull;
+		*(unsigned long long *)0x4f084c = 0x00007d00fa000400ull;
+	}
+	// Disable mipmapping
+	if (AutoPatch >= 2 && isXWing && GenerateMipMaps &&
+		*(const unsigned long long *)0x47f676 == 0xc0d9004c32a03dd8ull) {
+		DWORD old, dummy;
+		VirtualProtect((void *)0x47f676, 8, PAGE_READWRITE, &old);
+		*(unsigned long long *)0x47f676 = 0xc0d9004c329c3dd8ull;
+		VirtualProtect((void *)0x47f676, 8, old, &dummy);
+	}
+	if (AutoPatch >= 2 && isTIE && GenerateMipMaps &&
+		*(const unsigned long long *)0x42835f == 0xc0d9004dc3283dd8ull) {
+		DWORD old, dummy;
+		VirtualProtect((void *)0x42835f, 8, PAGE_READWRITE, &old);
+		*(unsigned long long *)0x42835f = 0xc0d9004dc3243dd8ull;
+		VirtualProtect((void *)0x42835f, 8, old, &dummy);
+	}
+	FlushInstructionCache(GetCurrentProcess(), NULL, 0);
 }
