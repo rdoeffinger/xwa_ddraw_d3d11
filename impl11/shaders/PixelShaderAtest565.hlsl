@@ -19,5 +19,5 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	// so we explicitly check only varying alpha.
 	if (input.color.a == 0) discard;
 	texelColor *= input.color;
-	return texelColor;
+	return float4(texelColor.rgb, input.color.a);
 }
