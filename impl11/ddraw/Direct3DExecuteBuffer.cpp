@@ -146,7 +146,43 @@ HRESULT Direct3DExecuteBuffer::Lock(
 		}
 		else
 		{
-			this->_deviceResources->RenderMain(this->_deviceResources->_backbufferSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp, RENDERMAIN_COLORKEY_00);
+			// Need to replace transparent-black parts with colorkey in-place.
+			// This fixes issues with the screen going all-black if we for some
+			// reason render this buffer a second time.
+			int length = this->_deviceResources->_displayWidth * this->_deviceResources->_displayHeight;
+
+			unsigned short* buffer16 = (unsigned short*)this->_deviceResources->_backbufferSurface->_buffer;
+
+			int i;
+			// The loop condition shouldn't need to be so obfuscated,
+			// but MSVC is stupid and generates slow loop conditions otherwise
+			for (i = 16; i <= length; i += 16)
+			{
+				__m128i color16 = _mm_loadu_si128((const __m128i *)(buffer16 + i - 16));
+				__m128i color16_2 = _mm_loadu_si128((const __m128i *)(buffer16 + i - 8));
+				__m128i transparent = _mm_cmpeq_epi16(color16, _mm_set1_epi16(0));
+				color16 = _mm_andnot_si128(transparent, color16);
+				transparent = _mm_and_si128(transparent, _mm_set1_epi16(0x2000));
+				color16 = _mm_or_si128(color16, transparent);
+				_mm_storeu_si128((__m128i *)(buffer16 + i - 16), color16);
+
+				transparent = _mm_cmpeq_epi16(color16_2, _mm_set1_epi16(0));
+				color16_2 = _mm_andnot_si128(transparent, color16_2);
+				transparent = _mm_and_si128(transparent, _mm_set1_epi16(0x2000));
+				color16_2 = _mm_or_si128(color16_2, transparent);
+				_mm_storeu_si128((__m128i *)(buffer16 + i - 8), color16_2);
+			}
+			i -= 16;
+			for (; i < length; i++)
+			{
+				unsigned short color16 = buffer16[i];
+
+				if (color16 == 0)
+				{
+					buffer16[i] = 0x2000;
+				}
+			}
+			this->_deviceResources->RenderMain(this->_deviceResources->_backbufferSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp, RENDERMAIN_COLORKEY_20);
 		}
 
 		this->_deviceResources->inSceneBackbufferLocked = false;
