@@ -504,6 +504,9 @@ void Direct3DDevice::UpdatePixelShader(ID3D11DeviceContext *context, Direct3DTex
 		// through the edges of light source textures. In BoP it causes distant frigates to be full of "holes" etc.
 		bool alpha_single_bit = texture->_surface->_pixelFormat.dwRGBBitCount == 16 && texture->_surface->_pixelFormat.dwRGBAlphaBitMask == 0x8000;
 		pixelShader = alpha_single_bit ? this->_deviceResources->_pixelShaderAtestTextureNoAlpha : this->_deviceResources->_pixelShaderAtestTexture;
+		// HACK: This is a workaround because NVidia cards may return 0 alpha for 565 textures,
+		// causing flicker and holes e.g. in the rear of the A-Wing in XWA (most visible from the side).
+		if (texture->_surface->_pixelFormat.dwRGBAlphaBitMask == 0) pixelShader = this->_deviceResources->_pixelShaderAtest565;
 	}
 
 	this->_deviceResources->InitPixelShader(pixelShader);

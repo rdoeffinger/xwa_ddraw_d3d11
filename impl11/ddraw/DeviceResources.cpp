@@ -16,6 +16,7 @@
 #include "../Debug/MainPixelShaderBpp2ColorKey00.h"
 #include "../Debug/MainPixelShaderBpp4ColorKey20.h"
 #include "../Debug/VertexShader.h"
+#include "../Debug/PixelShaderAtest565.h"
 #include "../Debug/PixelShaderAtestTexture.h"
 #include "../Debug/PixelShaderAtestTextureNoAlpha.h"
 #include "../Debug/PixelShaderTexture.h"
@@ -29,6 +30,7 @@
 #include "../Release/MainPixelShaderBpp2ColorKey00.h"
 #include "../Release/MainPixelShaderBpp4ColorKey20.h"
 #include "../Release/VertexShader.h"
+#include "../Release/PixelShaderAtest565.h"
 #include "../Release/PixelShaderAtestTexture.h"
 #include "../Release/PixelShaderAtestTextureNoAlpha.h"
 #include "../Release/PixelShaderTexture.h"
@@ -610,6 +612,9 @@ HRESULT DeviceResources::LoadResources()
 		return hr;
 
 	if (FAILED(hr = this->_d3dDevice->CreatePixelShader(g_PixelShaderTexture, sizeof(g_PixelShaderTexture), nullptr, &_pixelShaderTexture)))
+		return hr;
+
+	if (FAILED(hr = this->_d3dDevice->CreatePixelShader(g_PixelShaderAtest565, sizeof(g_PixelShaderAtest565), nullptr, &_pixelShaderAtest565)))
 		return hr;
 
 	if (FAILED(hr = this->_d3dDevice->CreatePixelShader(g_PixelShaderAtestTexture, sizeof(g_PixelShaderAtestTexture), nullptr, &_pixelShaderAtestTexture)))

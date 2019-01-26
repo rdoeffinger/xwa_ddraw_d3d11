@@ -276,9 +276,6 @@ HRESULT Direct3DTexture::Load(
 	}
 
 	bool supportedFormat = this->_deviceResources->_are16BppTexturesSupported || format == DXGI_FORMAT_B8G8R8A8_UNORM;
-	// Causes flickering in rear part of A-Wing when viewed in external view.
-	// Disable for now...
-	supportedFormat &= format != DXGI_FORMAT_B5G6R5_UNORM;
 
 	D3D11_TEXTURE2D_DESC textureDesc;
 	textureDesc.Width = surface->_width;
