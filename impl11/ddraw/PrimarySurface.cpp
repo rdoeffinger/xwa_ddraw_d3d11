@@ -547,10 +547,11 @@ HRESULT PrimarySurface::Flip(
 			hr = DD_OK;
 
 			// Draw pending backbuffer updates
-			// Somehow breaks XWA with 32 bit mode, showing only a black screen
+			// Note this breaks XWA showing only a black screen
 			// with some green spots, especially in hangar and when targetting
-			if (!g_config.XWAMode || this->_deviceResources->_displayBpp != 4)
-				this->_deviceResources->RenderMain(this->_deviceResources->_backbufferSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp);
+			// if transparent parts are not replaced with colorkey in
+			// Direct3DExecuteBuffer::Lock
+			this->_deviceResources->RenderMain(this->_deviceResources->_backbufferSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp);
 
 			this->_deviceResources->_d3dDeviceContext->ResolveSubresource(this->_deviceResources->_backBuffer, 0, this->_deviceResources->_offscreenBuffer, 0, DXGI_FORMAT_B8G8R8A8_UNORM);
 
