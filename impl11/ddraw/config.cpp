@@ -320,5 +320,20 @@ void Config::runAutopatch()
 		*(unsigned long long *)0x42835f = 0xc0d9004dc3243dd8ull;
 		VirtualProtect((void *)0x42835f, 8, old, &dummy);
 	}
+	// Change LOD distance factor constant from 1 to 1/32 for more detailed models
+	if (AutoPatch >= 2 && isXWing &&
+		*(const unsigned *)0x4cef64 == 0x3f800000u) {
+		DWORD old, dummy;
+		VirtualProtect((void *)0x4cef64, 4, PAGE_READWRITE, &old);
+		*(unsigned *)0x4cef64 = 0x3d000000u;
+		VirtualProtect((void *)0x4cef64, 4, old, &dummy);
+	}
+	if (AutoPatch >= 2 && isTIE &&
+		*(const unsigned *)0x4f2a8c == 0x3f800000u) {
+		DWORD old, dummy;
+		VirtualProtect((void *)0x4f2a8c, 4, PAGE_READWRITE, &old);
+		*(unsigned *)0x4f2a8c = 0x3d000000u;
+		VirtualProtect((void *)0x4f2a8c, 4, old, &dummy);
+	}
 	FlushInstructionCache(GetCurrentProcess(), NULL, 0);
 }
