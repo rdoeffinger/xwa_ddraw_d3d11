@@ -340,6 +340,21 @@ HRESULT DirectDraw::CreateSurface(
 
 			return DD_OK;
 		}
+
+		if (this->_deviceResources->_offscreenSurface2 == nullptr)
+		{
+			OffscreenSurface* offscreenSurface = new OffscreenSurface(this->_deviceResources);
+			this->_deviceResources->_offscreenSurface2 = offscreenSurface;
+			*lplpDDSurface = offscreenSurface;
+
+#if LOGGER
+			str.str("");
+			str << "\tOffscreenSurface2\t" << *lplpDDSurface;
+			LogText(str.str());
+#endif
+
+			return DD_OK;
+		}
 	}
 
 	if (lpDDSurfaceDesc->ddsCaps.dwCaps & DDSCAPS_TEXTURE)

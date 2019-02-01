@@ -125,4 +125,5 @@ public:
 	BackbufferSurface* _backbufferSurface;
 	FrontbufferSurface* _frontbufferSurface;
 	OffscreenSurface* _offscreenSurface;
+	OffscreenSurface* _offscreenSurface2; // only used in XWA software rendering mode
 };

@@ -72,6 +72,7 @@ DeviceResources::DeviceResources()
 	this->_backbufferSurface = nullptr;
 	this->_frontbufferSurface = nullptr;
 	this->_offscreenSurface = nullptr;
+	this->_offscreenSurface2 = nullptr;
 
 	this->_useAnisotropy = g_config.AnisotropicFilteringEnabled ? TRUE : FALSE;
 	this->_useMultisampling = g_config.MultisamplingAntialiasingEnabled ? TRUE : FALSE;

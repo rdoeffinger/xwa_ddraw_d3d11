@@ -585,6 +585,7 @@ HRESULT PrimarySurface::Flip(
 		if (g_config.PresentSleepTime >= 0) {
 			Sleep(g_config.PresentSleepTime);
 		}
+		if (this->_deviceResources->_backbufferSurface) this->_deviceResources->_backbufferSurface->sawSrcCopy = false;
 		return hr;
 	}
 

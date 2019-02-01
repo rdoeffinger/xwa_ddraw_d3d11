@@ -93,4 +93,5 @@ public:
 	DWORD _bufferSize;
 	char* _buffer;
 	unsigned _lockCount;
+	bool sawSrcCopy;
 };

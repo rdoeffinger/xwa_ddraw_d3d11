@@ -260,6 +260,7 @@ HRESULT BackbufferSurface::Blt(
 		lpDestRect->bottom - lpDestRect->top == lpSrcRect->bottom - lpSrcRect->top &&
 		dwFlags == DDBLT_ROP && lpDDBltFx->dwROP == SRCCOPY)
 	{
+		this->sawSrcCopy = true;
 		BltFast(lpDestRect->left, lpDestRect->top, lpDDSrcSurface, lpSrcRect, DDBLTFAST_WAIT);
 		return DD_OK;
 	}
@@ -317,6 +318,10 @@ HRESULT BackbufferSurface::BltFast(
 	{
 		str << " OffscreenSurface";
 	}
+	else if (lpDDSrcSurface == this->_deviceResources->_offscreenSurface2)
+	{
+		str << " OffscreenSurface2";
+	}
 	else
 	{
 		str << " " << lpDDSrcSurface;
@@ -357,9 +362,9 @@ HRESULT BackbufferSurface::BltFast(
 			return DD_OK;
 		}
 
-		if (lpDDSrcSurface == this->_deviceResources->_offscreenSurface)
+		if (lpDDSrcSurface == this->_deviceResources->_offscreenSurface || lpDDSrcSurface == this->_deviceResources->_offscreenSurface2)
 		{
-			copySurface(this->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp, this->_deviceResources->_offscreenSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, srcBpp, dwX, dwY, lpSrcRect, (dwTrans & DDBLTFAST_SRCCOLORKEY) != 0);
+			copySurface(this->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp, static_cast<OffscreenSurface *>(lpDDSrcSurface)->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, srcBpp, dwX, dwY, lpSrcRect, (dwTrans & DDBLTFAST_SRCCOLORKEY) != 0);
 			return DD_OK;
 		}
 	}
@@ -774,7 +779,10 @@ HRESULT BackbufferSurface::Lock(
 
 		if (g_config.XWAMode && this->_deviceResources->_frontbufferSurface != nullptr)
 		{
-			memset(this->_buffer, 0x80, this->_bufferSize);
+			// Need to disable the memset for software rendering to work.
+			// Not sure why the memset is needed at all, but don't risk breaking something
+			// just to fix software rendering.
+			if (!this->sawSrcCopy) memset(this->_buffer, 0x80, this->_bufferSize);
 			lpDDSurfaceDesc->lPitch = this->_deviceResources->_displayWidth * 2;
 		}
 		else

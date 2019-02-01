@@ -21,6 +21,10 @@ OffscreenSurface::~OffscreenSurface()
 	{
 		this->_deviceResources->_offscreenSurface = nullptr;
 	}
+	if (this->_deviceResources->_offscreenSurface2 == this)
+	{
+		this->_deviceResources->_offscreenSurface2 = nullptr;
+	}
 }
 
 HRESULT OffscreenSurface::QueryInterface(
