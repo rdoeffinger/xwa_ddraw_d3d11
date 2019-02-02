@@ -22,6 +22,14 @@ static int isspace_wrapper(char c)
     return std::isspace(static_cast<unsigned char>(c));
 }
 
+static void patchTimeGetTime(unsigned *addr)
+{
+	DWORD old, dummy;
+	VirtualProtect(addr, 4, PAGE_READWRITE, &old);
+	*addr = reinterpret_cast<unsigned>(emulGetTime);
+	VirtualProtect(addr, 4, old, &dummy);
+}
+
 Config g_config;
 
 Config::Config()
@@ -217,6 +225,14 @@ Config::Config()
 	}
 	if (AutoPatch >= 1 && isTIE && *(const unsigned *)0x4f3e54 == 0x74666f73u) {
 		*(unsigned *)0x4f3e54 = 0;
+	}
+
+	if (AutoPatch >= 2 && RefreshLimit == 1)
+	{
+		if (isBoP) patchTimeGetTime((unsigned *)0xbb96b8);
+		if (isXvT) patchTimeGetTime((unsigned *)0x86070c);
+		if (isXWing) patchTimeGetTime((unsigned *)0x4c31ec);
+		if (isTIE) patchTimeGetTime((unsigned *)0x4dc264);
 	}
 
 	if (this->JoystickEmul != 0 && isXWing)

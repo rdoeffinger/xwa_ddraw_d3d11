@@ -16,6 +16,32 @@
 #undef max
 #include <algorithm>
 
+// timeGetTime emulation.
+// if it is called in a tight loop it will call Sleep()
+// prevents high CPU usage due to busy loop
+DWORD emulGetTime()
+{
+	static DWORD oldtime;
+	static DWORD count;
+	DWORD time = timeGetTime();
+	if (time != oldtime)
+	{
+		oldtime = time;
+		count = 0;
+	}
+	// Trigger value and sleep value derived by trial and error.
+	// Trigger values down to 10 with sleep value 8 do not seem to affect performance
+	// even at 60 FPS, and trigger values up to 1000 with sleep value 1 still seem effective
+	// to reduce CPU load on fast modern computers.
+	if (++count >= 20)
+	{
+		Sleep(2);
+		time = timeGetTime();
+		count = 0;
+	}
+	return time;
+}
+
 static int needsJoyEmul()
 {
 	JOYCAPS caps = {};
