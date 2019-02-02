@@ -344,12 +344,7 @@ void copySurface(char* dest, DWORD destWidth, DWORD destHeight, DWORD destBpp, c
 			{
 				for (int y = 0; y < h; ++y)
 				{
-					for (int x = 0; x < w; ++x)
-					{
-						unsigned short color16 = srcBuffer[y * srcWidth + x];
-
-						destBuffer[y * destWidth + x] = color16;
-					}
+					memcpy(destBuffer + y * destWidth, srcBuffer + y * srcWidth, 2 * w);
 				}
 			}
 		}
