@@ -1196,6 +1196,8 @@ HRESULT Direct3DDevice::EndScene()
 
 	this->_deviceResources->inScene = false;
 
+	this->_deviceResources->_d3dDeviceContext->Flush();
+
 	return D3D_OK;
 }
 
