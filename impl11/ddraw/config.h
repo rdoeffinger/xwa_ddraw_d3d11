@@ -29,6 +29,7 @@ public:
 	bool XWAMode;
 	bool isTIE;
 	bool isXWing;
+	bool isXvT;
 
 	float Concourse3DScale;
 

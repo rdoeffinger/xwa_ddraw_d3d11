@@ -28,5 +28,6 @@
     <FxCompile Include="MainPixelShaderBpp4ColorKey20.hlsl" />
     <FxCompile Include="MainPixelShaderBpp2ColorKey00.hlsl" />
     <FxCompile Include="PixelShaderAtest565.hlsl" />
+    <FxCompile Include="PixelShaderAtestDiscardBlack.hlsl" />
   </ItemGroup>
 </Project>

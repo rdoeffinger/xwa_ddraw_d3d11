@@ -196,7 +196,7 @@ Config::Config()
 	bool isXWA = len >= 17 && _stricmp(name + len - 17, "xwingalliance.exe") == 0;
 	isXWing = len >= 11 && _stricmp(name + len - 11, "xwing95.exe") == 0;
 	isTIE = len >= 9 && _stricmp(name + len - 9, "tie95.exe") == 0;
-	bool isXvT = len >= 11 && _stricmp(name + len - 11, "z_xvt__.exe") == 0 &&
+	isXvT = len >= 11 && _stricmp(name + len - 11, "z_xvt__.exe") == 0 &&
 		*(const unsigned long long *)0x523aec == 0x54534c2e31505352ull;
 	bool isBoP = len >= 11 && _stricmp(name + len - 11, "z_xvt__.exe") == 0 &&
 		*(const unsigned long long *)0x5210bc == 0x54534c2e31505352ull;
