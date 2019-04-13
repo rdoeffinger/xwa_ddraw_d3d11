@@ -63,6 +63,10 @@ struct MainVertex
 
 DeviceResources::DeviceResources()
 {
+	this->_displayTempWidth = 0;
+	this->_displayTempHeight = 0;
+	this->_displayTempBpp = 0;
+
 	this->_displayWidth = 0;
 	this->_displayHeight = 0;
 	this->_displayBpp = 0;
@@ -87,6 +91,7 @@ DeviceResources::DeviceResources()
 	this->_refreshRate = { 0, 1 };
 	this->_are16BppTexturesSupported = false;
 	this->_use16BppMainDisplayTexture = false;
+	this->_mainDisplayTextureBpp = 0;
 
 	const float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	memcpy(this->clearColor, &color, sizeof(color));
