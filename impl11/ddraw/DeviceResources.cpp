@@ -738,11 +738,6 @@ HRESULT DeviceResources::InitSamplerState(ID3D11SamplerState** sampler, D3D11_SA
 			currentDesc = *desc;
 			currentSampler = tempSampler.GetAddressOf();
 			this->_d3dDeviceContext->PSSetSamplers(0, 1, currentSampler);
-
-			desc->Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			if (FAILED(hr = this->_d3dDevice->CreateSamplerState(desc, &tempSampler)))
-				return hr;
-			this->_d3dDeviceContext->PSSetSamplers(1, 1, tempSampler.GetAddressOf());
 		}
 	}
 	else
