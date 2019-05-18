@@ -19,10 +19,12 @@ http://support.microsoft.com/kb/179113/en
 *** Usage ***
 
 To use this dll:
-- place ddraw.dll and ddraw.cfg next to (depending on game)
+- place ddraw.dll, nopowervr.txt and ddraw.cfg next to (depending on game)
 xwingalliance.exe, z_xvt__.exe, XWING95.exe or TIE95.exe
 
 ddraw.cfg is a config file. Open it with a text editor for more details.
+If you renamed the .exe files mentioned above, some features
+may not work as expected.
 
 
 Note for X-Wing vs. TIE Fighter:

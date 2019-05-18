@@ -1,0 +1,6 @@
+This file disables the PowerVR graphics card detection
+code in the X-Wing/TIE series games.
+This avoids crashes if compatibility mode is not enabled,
+which are caused by calling BIOS interrupts.
+The content of this file has no meaning, just that a file
+with the name nopowervr.txt exists.

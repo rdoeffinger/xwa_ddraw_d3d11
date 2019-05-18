@@ -25,9 +25,9 @@ clean:
 
 
 # ./ prefix to make 7z store the files without path
-xwing_ddraw_d3d11_$(VERSION).zip: ddraw/ddraw.cfg Release/ddraw.dll ../LICENSE.txt ../readme.txt
+xwing_ddraw_d3d11_$(VERSION).zip: ddraw/nopowervr.txt ddraw/ddraw.cfg Release/ddraw.dll ../LICENSE.txt ../readme.txt
 	rm -f $@
-	unix2dos -k ddraw/ddraw.cfg ../LICENSE.txt ../readme.txt
+	unix2dos -k ddraw/nopowervr.txt ddraw/ddraw.cfg ../LICENSE.txt ../readme.txt
 	7z a -mx9 $@ $(addprefix ./,$^)
 
 ifeq ("$(VERSION);$(VERSION)","$(DLLVERSION);$(PRODVERSION)")
