@@ -19,26 +19,20 @@ void copySurface(char* dest, DWORD destWidth, DWORD destHeight, DWORD destBpp, c
 
 void scaleSurface(char* dest, DWORD destWidth, DWORD destHeight, DWORD destBpp, char* src, DWORD srcWidth, DWORD srcHeight, DWORD srcBpp);
 
-class ColorConverterTables
-{
-public:
-	ColorConverterTables();
-
-	unsigned char X8toX5[0x100];
-	unsigned char X8toX6[0x100];
-};
-
-extern ColorConverterTables g_colorConverterTables;
-
 inline unsigned short convertColorB8G8R8X8toB5G6R5(unsigned int color32)
 {
 	unsigned char red = (unsigned char)((color32 & 0xFF0000) >> 16);
 	unsigned char green = (unsigned char)((color32 & 0xFF00) >> 8);
 	unsigned char blue = (unsigned char)(color32 & 0xFF);
 
-	red = g_colorConverterTables.X8toX5[red];
-	green = g_colorConverterTables.X8toX6[green];
-	blue = g_colorConverterTables.X8toX5[blue];
+	// Fixed-point multiplication constants are a 16-bit approximation
+	// of 31/255 and 63/255 respectively.
+	// Have been tested to be fully equivalent to the original formulas of
+	// (c * (0x1F * 2) + 0xFF) / (0xFF * 2)
+	// (c * (0x3F * 2) + 0xFF) / (0xFF * 2)
+	red = (red * 7967 + 32768) >> 16;
+	green = (green * 16191 + 32768) >> 16;
+	blue = (blue * 7967 + 32768) >> 16;
 
 	return (red << 11) | (green << 5) | blue;
 }

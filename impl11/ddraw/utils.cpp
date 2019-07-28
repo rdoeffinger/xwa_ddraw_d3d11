@@ -570,18 +570,6 @@ void scaleSurface(char* dest, DWORD destWidth, DWORD destHeight, DWORD destBpp, 
 	}
 }
 
-ColorConverterTables::ColorConverterTables()
-{
-	// X8toX5, X8toX6
-	for (unsigned int c = 0; c < 0x100; c++)
-	{
-		this->X8toX5[c] = (c * (0x1F * 2) + 0xFF) / (0xFF * 2);
-		this->X8toX6[c] = (c * (0x3F * 2) + 0xFF) / (0xFF * 2);
-	}
-}
-
-ColorConverterTables g_colorConverterTables;
-
 #if LOGGER
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
