@@ -488,13 +488,17 @@ void Direct3DDevice::UpdatePixelShader(ID3D11DeviceContext *context, Direct3DTex
 	}
 	else if (!this->_renderStates->AlphaTestEnabled || this->_renderStates->AlphaFunc == D3DCMP_ALWAYS)
 	{
+		texture->_refCount++;
 		context->PSSetShaderResources(0, 1, texture->_textureView.GetAddressOf());
+		texture->_refCount--;
 
 		pixelShader = this->_deviceResources->_pixelShaderTexture;
 	}
 	else
 	{
+		texture->_refCount++;
 		context->PSSetShaderResources(0, 1, texture->_textureView.GetAddressOf());
+		texture->_refCount--;
 
 #if LOGGER
 		if (this->_renderStates->AlphaFunc != D3DCMP_NOTEQUAL || this->_renderStates->AlphaRef != 0)

@@ -555,7 +555,7 @@ HRESULT PrimarySurface::Flip(
 
 			this->_deviceResources->_d3dDeviceContext->ResolveSubresource(this->_deviceResources->_backBuffer, 0, this->_deviceResources->_offscreenBuffer, 0, DXGI_FORMAT_B8G8R8A8_UNORM);
 
-			if (FAILED(hr = this->_deviceResources->_swapChain->Present(1, 0)))
+			if (FAILED(hr = this->_deviceResources->_swapChain->Present(g_config.VSyncEnabled ? 1 : 0, 0)))
 			{
 				static bool messageShown = false;
 

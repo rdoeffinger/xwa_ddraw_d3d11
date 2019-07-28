@@ -38,6 +38,7 @@ Config::Config()
 	this->MultisamplingAntialiasingEnabled = false;
 	this->AnisotropicFilteringEnabled = true;
 	this->GenerateMipMaps = -1;
+	this->VSyncEnabled = true;
 	this->WireframeFillMode = false;
 	this->ScalingType = 0;
 	this->Fullscreen = 0;
@@ -122,6 +123,10 @@ Config::Config()
 			else if (name == "GenerateMipMaps")
 			{
 				this->GenerateMipMaps = stoi(value);
+			}
+			else if (name == "EnableVSync")
+			{
+				this->VSyncEnabled = stoi(value) != 0;
 			}
 			else if (name == "FillWireframe")
 			{

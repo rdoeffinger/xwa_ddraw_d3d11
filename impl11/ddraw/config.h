@@ -15,6 +15,7 @@ public:
 	bool MultisamplingAntialiasingEnabled;
 	bool AnisotropicFilteringEnabled;
 	int GenerateMipMaps;
+	bool VSyncEnabled;
 	bool WireframeFillMode;
 	int ScalingType;
 

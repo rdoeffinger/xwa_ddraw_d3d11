@@ -3,10 +3,12 @@
 
 #pragma once
 
+class TextureSurface;
+
 class MipmapSurface : public IDirectDrawSurface
 {
 public:
-	MipmapSurface(DeviceResources* deviceResources, DWORD width, DWORD height, DDPIXELFORMAT& pixelFormat, DWORD mipmapCount, char* buffer);
+	MipmapSurface(DeviceResources* deviceResources, TextureSurface* surface, DWORD width, DWORD height, DDPIXELFORMAT& pixelFormat, DWORD mipmapCount, char* buffer);
 
 	virtual ~MipmapSurface();
 
@@ -89,6 +91,8 @@ public:
 	ULONG _refCount;
 
 	DeviceResources* _deviceResources;
+
+	TextureSurface* _surface;
 
 	DWORD _width;
 	DWORD _height;
