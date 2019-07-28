@@ -14,7 +14,10 @@ using namespace Gdiplus;
 std::string wchar_tostring(LPCWSTR text)
 {
 	std::wstring wstr(text);
+#pragma warning(push)
+#pragma warning(disable:4244)
 	return std::string(wstr.begin(), wstr.end());
+#pragma warning(pop)
 }
 
 #if LOGGER
