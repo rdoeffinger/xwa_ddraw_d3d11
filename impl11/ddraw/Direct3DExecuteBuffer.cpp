@@ -134,13 +134,14 @@ HRESULT Direct3DExecuteBuffer::Lock(
 
 				if (color16 == 0)
 				{
-					buffer32[i] = 0x20000000;
+					buffer32[i] = 0xff000000;
 				}
 				else
 				{
 					buffer32[i] = convertColorB5G6R5toB8G8R8X8(color16);
 				}
 			}
+			this->_deviceResources->RenderMain(this->_deviceResources->_backbufferSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp, RENDERMAIN_NO_COLORKEY);
 		}
 		else
 		{
@@ -180,9 +181,8 @@ HRESULT Direct3DExecuteBuffer::Lock(
 					buffer16[i] = 0x2000;
 				}
 			}
+			this->_deviceResources->RenderMain(this->_deviceResources->_backbufferSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp, RENDERMAIN_COLORKEY_20);
 		}
-		this->_deviceResources->RenderMain(this->_deviceResources->_backbufferSurface->_buffer, this->_deviceResources->_displayWidth, this->_deviceResources->_displayHeight, this->_deviceResources->_displayBpp, RENDERMAIN_COLORKEY_20);
-
 		this->_deviceResources->inSceneBackbufferLocked = false;
 	}
 
