@@ -47,6 +47,7 @@ Config::Config()
 	this->JoystickEmul = -1;
 	this->XInputTriggerAsThrottle = 0;
 	this->InvertYAxis = false;
+	this->InvertThrottle = false;
 	this->MouseSensitivity = 0.5f;
 	this->KbdSensitivity = 1.0f;
 	this->XWAMode = true;
@@ -165,6 +166,10 @@ Config::Config()
 			else if (name == "InvertYAxis")
 			{
 				this->InvertYAxis = stoi(value) != 0;
+			}
+			else if (name == "InvertThrottle")
+			{
+				this->InvertThrottle = stoi(value) != 0;
 			}
 			else if (name == "MouseSensitivity")
 			{

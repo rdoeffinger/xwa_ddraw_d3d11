@@ -82,13 +82,14 @@ UINT WINAPI emulJoyGetNumDevs(void)
 	return 1;
 }
 
-static UINT joyYmax;
+static UINT joyYmax, joyZmax;
 
 UINT WINAPI emulJoyGetDevCaps(UINT_PTR joy, struct tagJOYCAPSA *pjc, UINT size)
 {
 	if (!g_config.JoystickEmul) {
 		UINT res = joyGetDevCaps(joy, pjc, size);
 		if (g_config.InvertYAxis && joy == 0 && pjc && size == 0x194) joyYmax = pjc->wYmax;
+		if (g_config.InvertThrottle && joy == 0 && pjc && size == 0x194) joyZmax = pjc->wZmax;
 		return res;
 	}
 	if (joy != 0) return MMSYSERR_NODRIVER;
@@ -145,6 +146,7 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 	if (!g_config.JoystickEmul) {
 		UINT res = joyGetPosEx(joy, pji);
 		if (g_config.InvertYAxis && joyYmax > 0) pji->dwYpos = joyYmax - pji->dwYpos;
+		if (g_config.InvertThrottle && joyZmax > 0) pji->dwZpos = joyZmax - pji->dwZpos;
 		return res;
 	}
 	if (joy != 0) return MMSYSERR_NODRIVER;
@@ -161,6 +163,7 @@ UINT WINAPI emulJoyGetPosEx(UINT joy, struct joyinfoex_tag *pji)
 		if (g_config.XInputTriggerAsThrottle)
 		{
 			pji->dwZpos = g_config.XInputTriggerAsThrottle & 1 ? state.Gamepad.bLeftTrigger : state.Gamepad.bRightTrigger;
+			if (g_config.InvertThrottle) pji->dwZpos = 255 - pji->dwZpos;
 		}
 		pji->dwRpos = state.Gamepad.sThumbRX + 32768;
 		pji->dwUpos = state.Gamepad.sThumbRY + 32768;

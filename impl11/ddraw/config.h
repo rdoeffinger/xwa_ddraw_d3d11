@@ -27,6 +27,7 @@ public:
 	int JoystickEmul;
 	int XInputTriggerAsThrottle;
 	bool InvertYAxis;
+	bool InvertThrottle;
 	float MouseSensitivity;
 	float KbdSensitivity;
 	bool XWAMode;
