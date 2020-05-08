@@ -12,6 +12,9 @@
 
 #include <dxgi.h>
 #include <d3d11.h>
+#include <d2d1.h>
+#include <d2d1helper.h>
+#include <dwrite.h>
 
 #ifdef MINGW_HAS_SECURE_API
 // Bug workaround to fix compilation

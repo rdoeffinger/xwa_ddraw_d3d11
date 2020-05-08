@@ -6,7 +6,7 @@
 class Direct3DExecuteBuffer : public IDirect3DExecuteBuffer
 {
 public:
-	Direct3DExecuteBuffer(DeviceResources* deviceResources, DWORD bufferSize);
+	Direct3DExecuteBuffer(DeviceResources* deviceResources, DWORD bufferSize, Direct3DDevice* d3dDevice);
 
 	virtual ~Direct3DExecuteBuffer();
 
@@ -37,6 +37,7 @@ public:
 	ULONG _refCount;
 
 	DeviceResources* _deviceResources;
+	Direct3DDevice* _d3dDevice;
 
 	DWORD _bufferSize;
 	char* _buffer;

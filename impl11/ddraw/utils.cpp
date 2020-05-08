@@ -4,6 +4,7 @@
 #include "common.h"
 #include "utils.h"
 
+#include <sstream>
 #include <memory>
 #include <gdiplus.h>
 
@@ -18,6 +19,11 @@ std::string wchar_tostring(LPCWSTR text)
 #pragma warning(disable:4244)
 	return std::string(wstr.begin(), wstr.end());
 #pragma warning(pop)
+}
+
+std::wstring string_towstring(const std::string& text)
+{
+	return std::wstring(text.begin(), text.end());
 }
 
 #if LOGGER

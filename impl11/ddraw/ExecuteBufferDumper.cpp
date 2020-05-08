@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "DeviceResources.h"
+#include "Direct3DDevice.h"
 #include "Direct3DExecuteBuffer.h"
 #include "ExecuteBufferDumper.h"
 

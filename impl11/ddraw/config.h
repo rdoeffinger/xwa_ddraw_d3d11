@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string>
+
 class Config
 {
 public:
@@ -39,6 +41,11 @@ public:
 
 	int AutoPatch;
 	bool RuntimeAutoPatchDone;
+
+	bool D3dHookExists;
+
+	std::wstring TextFontFamily;
+	int TextWidthDelta;
 };
 
 extern Config g_config;

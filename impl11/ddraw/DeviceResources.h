@@ -35,11 +35,12 @@ public:
 	void InitPixelShader(ID3D11PixelShader* pixelShader);
 	void InitTopology(D3D_PRIMITIVE_TOPOLOGY topology);
 	void InitRasterizerState(ID3D11RasterizerState* state);
+	void InitPSShaderResourceView(ID3D11ShaderResourceView* texView);
 	HRESULT InitSamplerState(ID3D11SamplerState** sampler, D3D11_SAMPLER_DESC* desc);
 	HRESULT InitBlendState(ID3D11BlendState* blend, D3D11_BLEND_DESC* desc);
 	HRESULT InitDepthStencilState(ID3D11DepthStencilState* depthState, D3D11_DEPTH_STENCIL_DESC* desc);
 	void InitVertexBuffer(ID3D11Buffer** buffer, UINT* stride, UINT* offset);
-	void InitIndexBuffer(ID3D11Buffer* buffer);
+	void InitIndexBuffer(ID3D11Buffer* buffer, bool isFormat32);
 	void InitViewport(D3D11_VIEWPORT* viewport);
 	void InitConstantBuffer(ID3D11Buffer** buffer, const float* viewportScale);
 
@@ -73,6 +74,11 @@ public:
 	ComPtr<ID3D11RenderTargetView> _renderTargetView;
 	ComPtr<ID3D11Texture2D> _depthStencil;
 	ComPtr<ID3D11DepthStencilView> _depthStencilView;
+
+	ComPtr<ID2D1Factory> _d2d1Factory;
+	ComPtr<IDWriteFactory> _dwriteFactory;
+	ComPtr<ID2D1RenderTarget> _d2d1RenderTarget;
+	ComPtr<ID2D1DrawingStateBlock> _d2d1DrawingStateBlock;
 
 	ComPtr<ID3D11VertexShader> _mainVertexShader;
 	ComPtr<ID3D11InputLayout> _mainInputLayout;

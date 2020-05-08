@@ -11,6 +11,12 @@
 #include "ExecuteBufferDumper.h"
 #include "TextureSurface.h"
 
+int g_ExecuteCount;
+int g_ExecuteVertexCount;
+int g_ExecuteIndexCount;
+int g_ExecuteStateCount;
+int g_ExecuteTriangleCount;
+
 class RenderStates
 {
 public:
@@ -417,7 +423,7 @@ HRESULT Direct3DDevice::CreateExecuteBuffer(
 		return DDERR_INVALIDPARAMS;
 	}
 
-	if (lpDesc->dwBufferSize > this->_maxExecuteBufferSize)
+	if (lpDesc->dwBufferSize > this->_maxExecuteBufferSize || lpDesc->dwBufferSize < this->_maxExecuteBufferSize / 4)
 	{
 		auto& device = this->_deviceResources->_d3dDevice;
 
@@ -446,7 +452,7 @@ HRESULT Direct3DDevice::CreateExecuteBuffer(
 		this->_maxExecuteBufferSize = lpDesc->dwBufferSize;
 	}
 
-	*lplpDirect3DExecuteBuffer = new Direct3DExecuteBuffer(this->_deviceResources, lpDesc->dwBufferSize);
+	*lplpDirect3DExecuteBuffer = new Direct3DExecuteBuffer(this->_deviceResources, lpDesc->dwBufferSize * 2, this);
 
 #if LOGGER
 	str.str("");
@@ -481,15 +487,14 @@ void Direct3DDevice::UpdatePixelShader(ID3D11DeviceContext *context, Direct3DTex
 
 	if (texture == nullptr)
 	{
-		ID3D11ShaderResourceView* view = nullptr;
-		context->PSSetShaderResources(0, 1, &view);
+		this->_deviceResources->InitPSShaderResourceView(nullptr);
 
 		pixelShader = this->_deviceResources->_pixelShaderSolid;
 	}
 	else if (!this->_renderStates->AlphaTestEnabled || this->_renderStates->AlphaFunc == D3DCMP_ALWAYS)
 	{
 		texture->_refCount++;
-		context->PSSetShaderResources(0, 1, texture->_textureView.GetAddressOf());
+		this->_deviceResources->InitPSShaderResourceView(texture->_textureView.Get());
 		texture->_refCount--;
 
 		pixelShader = this->_deviceResources->_pixelShaderTexture;
@@ -497,7 +502,7 @@ void Direct3DDevice::UpdatePixelShader(ID3D11DeviceContext *context, Direct3DTex
 	else
 	{
 		texture->_refCount++;
-		context->PSSetShaderResources(0, 1, texture->_textureView.GetAddressOf());
+		this->_deviceResources->InitPSShaderResourceView(texture->_textureView.Get());
 		texture->_refCount--;
 
 #if LOGGER
@@ -531,6 +536,8 @@ HRESULT Direct3DDevice::Execute(
 	str << this << " " << __FUNCTION__;
 	LogText(str.str());
 #endif
+
+	g_ExecuteCount++;
 
 	if (lpDirect3DExecuteBuffer == nullptr)
 	{
@@ -626,16 +633,21 @@ HRESULT Direct3DDevice::Execute(
 	{
 		step = "VertexBuffer";
 
-		D3D11_MAPPED_SUBRESOURCE map;
-		hr = context->Map(this->_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		g_ExecuteVertexCount += executeBuffer->_executeData.dwVertexCount;
 
-		if (SUCCEEDED(hr))
+		if (!g_config.D3dHookExists)
 		{
-			size_t length = sizeof(D3DTLVERTEX) * executeBuffer->_executeData.dwVertexCount;
-			memcpy(map.pData, executeBuffer->_buffer, length);
-			//memset((char*)map.pData + length, 0, this->_maxExecuteBufferSize - length);
+			D3D11_MAPPED_SUBRESOURCE map;
+			hr = context->Map(this->_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 
-			context->Unmap(this->_vertexBuffer, 0);
+			if (SUCCEEDED(hr))
+			{
+				size_t length = sizeof(D3DTLVERTEX) * executeBuffer->_executeData.dwVertexCount;
+				memcpy(map.pData, executeBuffer->_buffer, length);
+				//memset((char*)map.pData + length, 0, this->_maxExecuteBufferSize - length);
+
+				context->Unmap(this->_vertexBuffer, 0);
+			}
 		}
 
 		if (SUCCEEDED(hr))
@@ -651,50 +663,53 @@ HRESULT Direct3DDevice::Execute(
 	{
 		step = "IndexBuffer";
 
-		D3D11_MAPPED_SUBRESOURCE map;
-		hr = context->Map(this->_indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-
-		if (SUCCEEDED(hr))
+		if (!g_config.D3dHookExists)
 		{
-			char* pData = executeBuffer->_buffer + executeBuffer->_executeData.dwInstructionOffset;
-			char* pDataEnd = pData + executeBuffer->_executeData.dwInstructionLength;
+			D3D11_MAPPED_SUBRESOURCE map;
+			hr = context->Map(this->_indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 
-			WORD* indice = (WORD*)map.pData;
-
-			while (pData < pDataEnd)
+			if (SUCCEEDED(hr))
 			{
-				LPD3DINSTRUCTION instruction = (LPD3DINSTRUCTION)pData;
-				pData += sizeof(D3DINSTRUCTION) + instruction->bSize * instruction->wCount;
+				char* pData = executeBuffer->_buffer + executeBuffer->_executeData.dwInstructionOffset;
+				char* pDataEnd = pData + executeBuffer->_executeData.dwInstructionLength;
 
-				switch (instruction->bOpcode)
-				{
-				case D3DOP_TRIANGLE:
-				{
-					LPD3DTRIANGLE triangle = (LPD3DTRIANGLE)(instruction + 1);
+				WORD* indice = (WORD*)map.pData;
 
-					for (WORD i = 0; i < instruction->wCount; i++)
+				while (pData < pDataEnd)
+				{
+					LPD3DINSTRUCTION instruction = (LPD3DINSTRUCTION)pData;
+					pData += sizeof(D3DINSTRUCTION) + instruction->bSize * instruction->wCount;
+
+					switch (instruction->bOpcode)
 					{
-						*indice = triangle->v1;
-						indice++;
+					case D3DOP_TRIANGLE:
+					{
+						LPD3DTRIANGLE triangle = (LPD3DTRIANGLE)(instruction + 1);
 
-						*indice = triangle->v2;
-						indice++;
+						for (WORD i = 0; i < instruction->wCount; i++)
+						{
+							*indice = triangle->v1;
+							indice++;
 
-						*indice = triangle->v3;
-						indice++;
+							*indice = triangle->v2;
+							indice++;
 
-						triangle++;
+							*indice = triangle->v3;
+							indice++;
+
+							triangle++;
+						}
+					}
 					}
 				}
-				}
-			}
 
-			context->Unmap(this->_indexBuffer, 0);
+				context->Unmap(this->_indexBuffer, 0);
+			}
 		}
 
 		if (SUCCEEDED(hr))
 		{
-			this->_deviceResources->InitIndexBuffer(this->_indexBuffer);
+			this->_deviceResources->InitIndexBuffer(this->_indexBuffer, g_config.D3dHookExists);
 		}
 	}
 
@@ -716,6 +731,8 @@ HRESULT Direct3DDevice::Execute(
 			{
 			case D3DOP_STATERENDER:
 			{
+				g_ExecuteStateCount += instruction->wCount;
+
 				LPD3DSTATE state = (LPD3DSTATE)(instruction + 1);
 
 				for (WORD i = 0; i < instruction->wCount; i++)
@@ -783,6 +800,9 @@ HRESULT Direct3DDevice::Execute(
 
 			case D3DOP_TRIANGLE:
 			{
+				g_ExecuteTriangleCount++;
+				g_ExecuteIndexCount += instruction->wCount * 3;
+
 				step = "SamplerState";
 				D3D11_SAMPLER_DESC samplerDesc = this->_renderStates->GetSamplerDesc();
 				if (FAILED(hr = this->_deviceResources->InitSamplerState(nullptr, &samplerDesc)))
@@ -1112,6 +1132,12 @@ HRESULT Direct3DDevice::BeginScene()
 	LogText(str.str());
 #endif
 
+	g_ExecuteCount = 0;
+	g_ExecuteVertexCount = 0;
+	g_ExecuteIndexCount = 0;
+	g_ExecuteStateCount = 0;
+	g_ExecuteTriangleCount = 0;
+
 	if (!this->_deviceResources->_renderTargetView)
 	{
 #if LOGGER
@@ -1204,6 +1230,17 @@ HRESULT Direct3DDevice::EndScene()
 	this->_deviceResources->inScene = false;
 
 	this->_deviceResources->_d3dDeviceContext->Flush();
+
+	/*if (g_config.D3dHookExists)
+	{
+		OutputDebugString((
+			std::string("EndScene")
+			+ " E=" + std::to_string(g_ExecuteCount)
+			+ " S=" + std::to_string(g_ExecuteStateCount)
+			+ " T=" + std::to_string(g_ExecuteTriangleCount)
+			+ " V=" + std::to_string(g_ExecuteVertexCount)
+			+ " I=" + std::to_string(g_ExecuteIndexCount)).c_str());
+	}*/
 
 	return D3D_OK;
 }

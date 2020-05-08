@@ -91,6 +91,13 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="joystick.cpp">
+    <ClCompile Include="XwaDrawTextHook.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="XwaDrawRadarHook.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="XwaDrawBracketHook.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -171,6 +178,13 @@
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="joystick.h">
+    <ClInclude Include="XwaDrawTextHook.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="XwaDrawRadarHook.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="XwaDrawBracketHook.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>

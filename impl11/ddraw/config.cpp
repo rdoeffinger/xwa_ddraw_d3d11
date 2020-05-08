@@ -60,6 +60,16 @@ Config::Config()
 	this->PresentSleepTime = -1;
 	this->RefreshLimit = 1;
 
+	this->D3dHookExists = false;
+
+	this->TextFontFamily = L"Verdana";
+	this->TextWidthDelta = 0;
+
+	if (std::ifstream("Hook_D3d.dll"))
+	{
+		this->D3dHookExists = true;
+	}
+
 	// Try to always load config from executable path, not CWD
 	char execPath[MAX_PATH] = "";
 	HMODULE module = GetModuleHandle(NULL);
@@ -191,6 +201,14 @@ Config::Config()
 			else if (name == "XInputTriggerAsThrottle")
 			{
 				this->XInputTriggerAsThrottle = stoi(value);
+			}
+			else if (name == "TextFontFamily")
+			{
+				this->TextFontFamily = string_towstring(value);
+			}
+			else if (name == "TextWidthDelta")
+			{
+				this->TextWidthDelta = stoi(value);
 			}
 		}
 	}

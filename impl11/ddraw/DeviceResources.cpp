@@ -151,6 +151,16 @@ HRESULT DeviceResources::Initialize()
 
 	if (SUCCEEDED(hr))
 	{
+		hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &this->_d2d1Factory);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(this->_dwriteFactory), (IUnknown**)&this->_dwriteFactory);
+	}
+
+	if (SUCCEEDED(hr))
+	{
 		this->CheckMultisamplingSupport();
 	}
 
@@ -193,6 +203,8 @@ HRESULT DeviceResources::OnSizeChanged(HWND hWnd, DWORD dwWidth, DWORD dwHeight)
 {
 	HRESULT hr;
 	const char* step = "";
+
+	this->_d2d1RenderTarget.Release();
 
 	this->_depthStencilView.Release();
 	this->_depthStencil.Release();
@@ -421,6 +433,32 @@ HRESULT DeviceResources::OnSizeChanged(HWND hWnd, DWORD dwWidth, DWORD dwHeight)
 	this->_displayTempWidth = 0;
 	this->_displayTempHeight = 0;
 	this->_displayTempBpp = 0;
+
+	if (SUCCEEDED(hr))
+	{
+		step = "CreateDxgiSurfaceRenderTarget";
+		ComPtr<IDXGISurface> surface;
+		hr = this->_offscreenBuffer.As(&surface);
+
+		if (SUCCEEDED(hr))
+		{
+			auto properties = D2D1::RenderTargetProperties();
+			properties.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED);
+			hr = this->_d2d1Factory->CreateDxgiSurfaceRenderTarget(surface, properties, &this->_d2d1RenderTarget);
+
+			if (SUCCEEDED(hr))
+			{
+				this->_d2d1RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+				this->_d2d1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
+			}
+		}
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		step = "CreateDrawingStateBlock";
+		hr = this->_d2d1Factory->CreateDrawingStateBlock(&this->_d2d1DrawingStateBlock);
+	}
 
 	if (FAILED(hr))
 	{
@@ -721,6 +759,18 @@ void DeviceResources::InitRasterizerState(ID3D11RasterizerState* state)
 	}
 }
 
+void DeviceResources::InitPSShaderResourceView(ID3D11ShaderResourceView* texView)
+{
+	static ID3D11ShaderResourceView* currentTexView = nullptr;
+
+	if (texView != currentTexView)
+	{
+		ID3D11ShaderResourceView* view = texView;
+		this->_d3dDeviceContext->PSSetShaderResources(0, 1, &view);
+		currentTexView = texView;
+	}
+}
+
 HRESULT DeviceResources::InitSamplerState(ID3D11SamplerState** sampler, D3D11_SAMPLER_DESC* desc)
 {
 	static ID3D11SamplerState** currentSampler = nullptr;
@@ -834,14 +884,14 @@ void DeviceResources::InitVertexBuffer(ID3D11Buffer** buffer, UINT* stride, UINT
 	}
 }
 
-void DeviceResources::InitIndexBuffer(ID3D11Buffer* buffer)
+void DeviceResources::InitIndexBuffer(ID3D11Buffer* buffer, bool isFormat32)
 {
 	static ID3D11Buffer* currentBuffer = nullptr;
 
 	if (buffer != currentBuffer)
 	{
 		currentBuffer = buffer;
-		this->_d3dDeviceContext->IASetIndexBuffer(buffer, DXGI_FORMAT_R16_UINT, 0);
+		this->_d3dDeviceContext->IASetIndexBuffer(buffer, isFormat32 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT, 0);
 	}
 }
 
@@ -883,7 +933,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 	DWORD pitchDelta;
 
 	ID3D11Texture2D* tex = nullptr;
-	ID3D11ShaderResourceView** texView = nullptr;
+	ID3D11ShaderResourceView* texView = nullptr;
 
 	if (SUCCEEDED(hr))
 	{
@@ -896,7 +946,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 			{
 				pitchDelta = displayMap.RowPitch - width * bpp;
 				tex = this->_mainDisplayTexture;
-				texView = this->_mainDisplayTextureView.GetAddressOf();
+				texView = this->_mainDisplayTextureView.Get();
 			}
 		}
 		else
@@ -947,7 +997,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 				{
 					pitchDelta = displayMap.RowPitch - width * ((bpp == 2 && this->_use16BppMainDisplayTexture) ? 2 : 4);
 					tex = this->_mainDisplayTextureTemp;
-					texView = this->_mainDisplayTextureViewTemp.GetAddressOf();
+					texView = this->_mainDisplayTextureViewTemp.Get();
 				}
 			}
 		}
@@ -1244,7 +1294,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 	{
 		step = "Texture2D ShaderResourceView";
 
-		this->_d3dDeviceContext->PSSetShaderResources(0, 1, texView);
+		this->InitPSShaderResourceView(texView);
 	}
 
 	if (SUCCEEDED(hr))
@@ -1255,7 +1305,7 @@ HRESULT DeviceResources::RenderMain(char* src, DWORD width, DWORD height, DWORD 
 		UINT offset = 0;
 
 		this->InitVertexBuffer(this->_mainVertexBuffer.GetAddressOf(), &stride, &offset);
-		this->InitIndexBuffer(this->_mainIndexBuffer);
+		this->InitIndexBuffer(this->_mainIndexBuffer, false);
 		this->_d3dDeviceContext->DrawIndexed(6, 0, 0);
 	}
 
