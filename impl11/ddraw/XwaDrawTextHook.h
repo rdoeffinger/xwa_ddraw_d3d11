@@ -9,7 +9,7 @@ struct XwaText
 	int positionY;
 	unsigned int color;
 	int fontSize;
-	std::string text;
+	char textChar;
 };
 
 extern std::vector<XwaText> g_xwa_text;

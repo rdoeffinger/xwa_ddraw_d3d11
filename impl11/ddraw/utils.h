@@ -5,6 +5,7 @@
 
 std::string wchar_tostring(LPCWSTR text);
 std::wstring string_towstring(const std::string& text);
+std::wstring string_towstring(const char* text);
 
 #if LOGGER
 

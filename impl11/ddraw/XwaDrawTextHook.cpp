@@ -11,11 +11,7 @@ void RenderCharHook(short x, short y, unsigned char fw, unsigned char fh, char c
 	xwaText.positionY = y;
 	xwaText.color = color;
 	xwaText.fontSize = fh;
-
-	char t[2];
-	t[0] = c;
-	t[1] = 0;
-	xwaText.text = t;
+	xwaText.textChar = c;
 
 	g_xwa_text.push_back(xwaText);
 }
@@ -50,7 +46,7 @@ void ComputeMetricsHook()
 			std::wstring wtext = string_towstring(t);
 
 			ComPtr<IDWriteTextLayout> layout;
-			dwriteFactory->CreateTextLayout(wtext.c_str(), 1, textFormat, 100, 100, &layout);
+			dwriteFactory->CreateTextLayout(wtext.c_str(), wtext.length(), textFormat, 100, 100, &layout);
 
 			DWRITE_TEXT_METRICS m{};
 			layout->GetMetrics(&m);
