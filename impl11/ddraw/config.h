@@ -31,6 +31,7 @@ public:
 	float MouseSensitivity;
 	float KbdSensitivity;
 	bool XWAMode;
+	bool isXWA;
 	bool isTIE;
 	bool isXWing;
 	bool isXvT;

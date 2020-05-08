@@ -10,6 +10,9 @@
 #include <cctype>
 
 #include "joystick.h"
+#include "XwaDrawTextHook.h"
+#include "XwaDrawRadarHook.h"
+#include "XwaDrawBracketHook.h"
 
 // Wrapper to avoid undefined behaviour due to
 // sign-extending char to int when passing to isspace.
@@ -221,7 +224,7 @@ Config::Config()
 	GetModuleFileNameA(NULL, name, sizeof(name));
 	int len = strlen(name);
 
-	bool isXWA = len >= 17 && _stricmp(name + len - 17, "xwingalliance.exe") == 0;
+	isXWA = len >= 17 && _stricmp(name + len - 17, "xwingalliance.exe") == 0;
 	isXWing = len >= 11 && _stricmp(name + len - 11, "xwing95.exe") == 0;
 	isTIE = len >= 9 && _stricmp(name + len - 9, "tie95.exe") == 0;
 	isXvT = len >= 11 && _stricmp(name + len - 11, "z_xvt__.exe") == 0 &&
@@ -334,6 +337,15 @@ Config::Config()
 	DisableProcessWindowsGhosting();
 }
 
+static bool patchCall(int address, void *dst) {
+	if (*(unsigned char*)(address) != 0xE8) return false;
+	DWORD old, dummy;
+	VirtualProtect((void *)address, 5, PAGE_READWRITE, &old);
+	*(int*)(address + 0x01) = (int)dst - (address + 0x05);
+	VirtualProtect((void *)address, 5, old, &dummy);
+	return true;
+}
+
 void Config::runAutopatch()
 {
 	if (RuntimeAutoPatchDone) return;
@@ -378,6 +390,29 @@ void Config::runAutopatch()
 		VirtualProtect((void *)0x4f2a8c, 4, PAGE_READWRITE, &old);
 		*(unsigned *)0x4f2a8c = 0x3d000000u;
 		VirtualProtect((void *)0x4f2a8c, 4, old, &dummy);
+	}
+	if (AutoPatch >= 2 && isXWA && g_config.XWAMode) {
+		// RenderCharHook
+		patchCall(0x00450A47, RenderCharHook);
+
+		// ComputeMetricsHook
+		patchCall(0x00510385, ComputeMetricsHook);
+
+		// DrawRadarHook
+		DWORD old, dummy;
+		VirtualProtect((void *)(0x00434977 + 0x6), 0x00434995 - 0x00434977 + 4, PAGE_READWRITE, &old);
+		*(int*)(0x00434977 + 0x06) = (int)DrawRadarHook;
+		*(int*)(0x00434995 + 0x06) = (int)DrawRadarSelectedHook;
+		VirtualProtect((void *)(0x00434977 + 0x6), 0x00434995 - 0x00434977 + 4, old, &dummy);
+
+		// DrawBracketInFlightHook
+		patchCall(0x00503D46, DrawBracketInFlightHook);
+
+		// DrawBracketInFlightHook CMD
+		patchCall(0x00478E44, DrawBracketInFlightHook);
+
+		// DrawBracketMapHook
+		patchCall(0x00503CFE, DrawBracketMapHook);
 	}
 	FlushInstructionCache(GetCurrentProcess(), NULL, 0);
 }
