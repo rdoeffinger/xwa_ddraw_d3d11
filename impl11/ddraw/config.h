@@ -28,6 +28,7 @@ public:
 	int XInputTriggerAsThrottle;
 	bool InvertYAxis;
 	bool InvertThrottle;
+	bool DisableDeadzone;
 	float MouseSensitivity;
 	float KbdSensitivity;
 	bool XWAMode;
@@ -35,6 +36,7 @@ public:
 	bool isTIE;
 	bool isXWing;
 	bool isXvT;
+	bool isBoP;
 
 	float Concourse3DScale;
 

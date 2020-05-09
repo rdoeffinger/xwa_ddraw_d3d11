@@ -18,7 +18,7 @@ all: ddraw.dll
 	i686-w64-mingw32-windres -o $@ -i $<
 
 ddraw.dll: ddraw/*.cpp ddraw/ddraw.rc.o ddraw/ddraw.def
-	i686-w64-mingw32-g++ $(WARN_FLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lgdiplus -ld3d11 -ldxgi -ldxguid -lwinmm
+	i686-w64-mingw32-g++ $(WARN_FLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ -lgdiplus -ld3d11 -ldxgi -ldxguid -lwinmm -lxinput9_1_0
 
 clean:
 	rm -f ddraw.dll ddraw/ddraw.rc.o xwing_ddraw_d3d11_*.zip

@@ -149,6 +149,7 @@ HRESULT DeviceResources::Initialize()
 		hr = D3D11CreateDevice(nullptr, this->_d3dDriverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &this->_d3dDevice, &this->_d3dFeatureLevel, &this->_d3dDeviceContext);
 	}
 
+#ifndef __MINGW32__
 	if (SUCCEEDED(hr))
 	{
 		hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &this->_d2d1Factory);
@@ -158,6 +159,7 @@ HRESULT DeviceResources::Initialize()
 	{
 		hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(this->_dwriteFactory), (IUnknown**)&this->_dwriteFactory);
 	}
+#endif
 
 	if (SUCCEEDED(hr))
 	{
@@ -204,7 +206,9 @@ HRESULT DeviceResources::OnSizeChanged(HWND hWnd, DWORD dwWidth, DWORD dwHeight)
 	HRESULT hr;
 	const char* step = "";
 
+#ifndef __MINGW32__
 	this->_d2d1RenderTarget.Release();
+#endif
 
 	this->_depthStencilView.Release();
 	this->_depthStencil.Release();
@@ -434,6 +438,7 @@ HRESULT DeviceResources::OnSizeChanged(HWND hWnd, DWORD dwWidth, DWORD dwHeight)
 	this->_displayTempHeight = 0;
 	this->_displayTempBpp = 0;
 
+#ifndef __MINGW32__
 	if (SUCCEEDED(hr))
 	{
 		step = "CreateDxgiSurfaceRenderTarget";
@@ -459,6 +464,7 @@ HRESULT DeviceResources::OnSizeChanged(HWND hWnd, DWORD dwWidth, DWORD dwHeight)
 		step = "CreateDrawingStateBlock";
 		hr = this->_d2d1Factory->CreateDrawingStateBlock(&this->_d2d1DrawingStateBlock);
 	}
+#endif
 
 	if (FAILED(hr))
 	{

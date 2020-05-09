@@ -51,6 +51,7 @@ Config::Config()
 	this->XInputTriggerAsThrottle = 0;
 	this->InvertYAxis = false;
 	this->InvertThrottle = false;
+	this->DisableDeadzone = true;
 	this->MouseSensitivity = 0.5f;
 	this->KbdSensitivity = 1.0f;
 	this->XWAMode = true;
@@ -174,6 +175,10 @@ Config::Config()
 			{
 				this->InvertThrottle = stoi(value) != 0;
 			}
+			else if (name == "DisableDeadzone")
+			{
+				this->DisableDeadzone = stoi(value) != 0;
+			}
 			else if (name == "MouseSensitivity")
 			{
 				this->MouseSensitivity = stof(value);
@@ -229,7 +234,7 @@ Config::Config()
 	isTIE = len >= 9 && _stricmp(name + len - 9, "tie95.exe") == 0;
 	isXvT = len >= 11 && _stricmp(name + len - 11, "z_xvt__.exe") == 0 &&
 		*(const unsigned long long *)0x523aec == 0x54534c2e31505352ull;
-	bool isBoP = len >= 11 && _stricmp(name + len - 11, "z_xvt__.exe") == 0 &&
+	isBoP = len >= 11 && _stricmp(name + len - 11, "z_xvt__.exe") == 0 &&
 		*(const unsigned long long *)0x5210bc == 0x54534c2e31505352ull;
 
 	if (XWAModeInt == -1)
@@ -350,6 +355,13 @@ void Config::runAutopatch()
 {
 	if (RuntimeAutoPatchDone) return;
 	RuntimeAutoPatchDone = true;
+	int deadzone_addr = isXWing ? 0x40b4c0 : isTIE ? 0x41ce80 : isBoP ? 0x4115f0 : isXvT ? 0x405590 : isXWA ? 0x4344a0 : 0;
+	if (DisableDeadzone && deadzone_addr && (*(const unsigned char *)deadzone_addr == 0x51 || *(const unsigned char *)deadzone_addr == 0x66)) {
+		DWORD old, dummy;
+		VirtualProtect((void *)deadzone_addr, 1, PAGE_READWRITE, &old);
+		*(unsigned char *)deadzone_addr = 0xc3;
+		VirtualProtect((void *)deadzone_addr, 1, old, &dummy);
+	}
 	// ISD laser fix, not tested (esp. with Steam version)
 	if (AutoPatch >= 2 && isTIE &&
 		*(const unsigned long long *)0x4df898 == 0x3735353433323130ull &&
@@ -391,6 +403,7 @@ void Config::runAutopatch()
 		*(unsigned *)0x4f2a8c = 0x3d000000u;
 		VirtualProtect((void *)0x4f2a8c, 4, old, &dummy);
 	}
+#ifndef __MINGW32__
 	if (AutoPatch >= 2 && isXWA && g_config.XWAMode) {
 		// RenderCharHook
 		patchCall(0x00450A47, RenderCharHook);
@@ -414,5 +427,6 @@ void Config::runAutopatch()
 		// DrawBracketMapHook
 		patchCall(0x00503CFE, DrawBracketMapHook);
 	}
+#endif
 	FlushInstructionCache(GetCurrentProcess(), NULL, 0);
 }

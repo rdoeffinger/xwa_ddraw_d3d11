@@ -3,6 +3,7 @@
 
 std::vector<XwaText> g_xwa_text;
 
+#ifndef __MINGW32__
 void RenderCharHook(short x, short y, unsigned char fw, unsigned char fh, char c, unsigned int color)
 {
 	XwaText xwaText;
@@ -55,3 +56,4 @@ void ComputeMetricsHook()
 		}
 	}
 }
+#endif

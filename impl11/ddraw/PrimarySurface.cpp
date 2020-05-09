@@ -1100,6 +1100,7 @@ HRESULT PrimarySurface::UpdateOverlayZOrder(
 void PrimarySurface::RenderText()
 {
 	if (g_xwa_text.empty()) return;
+#ifndef __MINGW32__
 	this->_deviceResources->_d2d1RenderTarget->SaveDrawingState(this->_deviceResources->_d2d1DrawingStateBlock);
 	this->_deviceResources->_d2d1RenderTarget->BeginDraw();
 
@@ -1209,6 +1210,7 @@ void PrimarySurface::RenderText()
 
 	this->_deviceResources->_d2d1RenderTarget->EndDraw();
 	this->_deviceResources->_d2d1RenderTarget->RestoreDrawingState(this->_deviceResources->_d2d1DrawingStateBlock);
+#endif
 
 	g_xwa_text.clear();
 	g_xwa_text.reserve(4096);
@@ -1217,6 +1219,7 @@ void PrimarySurface::RenderText()
 void PrimarySurface::RenderRadar()
 {
 	if (g_xwa_radar.empty()) return;
+#ifndef __MINGW32__
 	this->_deviceResources->_d2d1RenderTarget->SaveDrawingState(this->_deviceResources->_d2d1DrawingStateBlock);
 	this->_deviceResources->_d2d1RenderTarget->BeginDraw();
 
@@ -1304,6 +1307,7 @@ void PrimarySurface::RenderRadar()
 
 	this->_deviceResources->_d2d1RenderTarget->EndDraw();
 	this->_deviceResources->_d2d1RenderTarget->RestoreDrawingState(this->_deviceResources->_d2d1DrawingStateBlock);
+#endif
 
 	g_xwa_radar.clear();
 	g_xwa_radar_selected_positionX = -1;
@@ -1313,6 +1317,7 @@ void PrimarySurface::RenderRadar()
 void PrimarySurface::RenderBracket()
 {
 	if (g_xwa_bracket.empty()) return;
+#ifndef __MINGW32__
 	this->_deviceResources->_d2d1RenderTarget->SaveDrawingState(this->_deviceResources->_d2d1DrawingStateBlock);
 	this->_deviceResources->_d2d1RenderTarget->BeginDraw();
 
@@ -1412,6 +1417,7 @@ void PrimarySurface::RenderBracket()
 
 	this->_deviceResources->_d2d1RenderTarget->EndDraw();
 	this->_deviceResources->_d2d1RenderTarget->RestoreDrawingState(this->_deviceResources->_d2d1DrawingStateBlock);
+#endif
 
 	g_xwa_bracket.clear();
 }
