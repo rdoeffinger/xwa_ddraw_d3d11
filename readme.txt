@@ -2,7 +2,9 @@ Download the latest version: https://github.com/rdoeffinger/xwa_ddraw_d3d11/rele
 The file you want is xwing_ddraw_d3d11_(version).zip
 
 This is an implementation of ddraw.dll using Direct3D 11.
-It is intented to be used with the X-Wing Alliance game.
+It is intended to be used with the X-Wing Alliance game.
+This version is extended to also work with the other games in
+the series, TIE95, X-Wing95, X-Wing vs TIE and Balance of Power.
 More info at xwaupgrade.com:
 http://www.xwaupgrade.com/phpBB3008/viewtopic.php?f=10&t=11167
 It also works with the other games from the series:
