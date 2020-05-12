@@ -1,3 +1,6 @@
+Download the latest version: https://github.com/rdoeffinger/xwa_ddraw_d3d11/releases/latest
+The file you want is xwing_ddraw_d3d11_(version).zip
+
 This is an implementation of ddraw.dll using Direct3D 11.
 It is intented to be used with the X-Wing Alliance game.
 More info at xwaupgrade.com:
