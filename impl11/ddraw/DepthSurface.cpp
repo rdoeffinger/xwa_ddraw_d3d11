@@ -141,7 +141,8 @@ HRESULT DepthSurface::Blt(
 	if ((dwFlags & DDBLT_DEPTHFILL) != 0 && lpDDBltFx != nullptr)
 	{
 		// To do this correctly we'd need to know the exact buffer format
-		this->_deviceResources->clearDepth = lpDDBltFx->dwFillDepth > 0 ? 1.0f : 0.0f;
+		// Assume at least D16
+		this->_deviceResources->clearDepth = lpDDBltFx->dwFillDepth > 0x8000 ? 1.0f : 0.0f;
 		this->_deviceResources->clearDepthSet = true;
 	}
 
