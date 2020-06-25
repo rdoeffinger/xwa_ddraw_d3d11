@@ -361,6 +361,12 @@ void Config::runAutopatch()
 		VirtualProtect((void *)deadzone_addr, 1, PAGE_READWRITE, &old);
 		*(unsigned char *)deadzone_addr = 0xc3;
 		VirtualProtect((void *)deadzone_addr, 1, old, &dummy);
+// More patches needed (replacing jle by NOP, jg for XvT because cmp arguments are swapped):
+// X-Wing: 0x4acafa: 7e22; 0x4acb3f: 7e21; 0x4acb83: 7e27
+// TIE: 0x49a91a: 7e22; 0x49a95f: 7e21; 0x49a9a3: 7e27
+// XvT: 0x4a5a43: 7d25; 0x4a5a8f: 7d25; 0x4a5adb: 7d2e
+// BoP: 0x4aae78: 7e26; 0x4aaec5: 7e26; 0x4aaf12: 7e2f
+// XWA: 0x50ba69: 7e22; 0x50baae: 7e2f; 0x50bb00: 7e28; 0x50bb4b: 7e3e
 	}
 	// ISD laser fix, not tested (esp. with Steam version)
 	if (AutoPatch >= 2 && isTIE &&
