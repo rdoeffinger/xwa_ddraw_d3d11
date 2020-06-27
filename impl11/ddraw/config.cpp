@@ -355,18 +355,38 @@ void Config::runAutopatch()
 {
 	if (RuntimeAutoPatchDone) return;
 	RuntimeAutoPatchDone = true;
-	int deadzone_addr = isXWing ? 0x40b4c0 : isTIE ? 0x41ce80 : isBoP ? 0x4115f0 : isXvT ? 0x405590 : isXWA ? 0x4344a0 : 0;
-	if (DisableDeadzone && deadzone_addr && (*(const unsigned char *)deadzone_addr == 0x51 || *(const unsigned char *)deadzone_addr == 0x66)) {
-		DWORD old, dummy;
-		VirtualProtect((void *)deadzone_addr, 1, PAGE_READWRITE, &old);
-		*(unsigned char *)deadzone_addr = 0xc3;
-		VirtualProtect((void *)deadzone_addr, 1, old, &dummy);
-// More patches needed (replacing jle by NOP, jg for XvT because cmp arguments are swapped):
-// X-Wing: 0x4acafa: 7e22; 0x4acb3f: 7e21; 0x4acb83: 7e27
-// TIE: 0x49a91a: 7e22; 0x49a95f: 7e21; 0x49a9a3: 7e27
-// XvT: 0x4a5a43: 7d25; 0x4a5a8f: 7d25; 0x4a5adb: 7d2e
-// BoP: 0x4aae78: 7e26; 0x4aaec5: 7e26; 0x4aaf12: 7e2f
-// XWA: 0x50ba69: 7e22; 0x50baae: 7e2f; 0x50bb00: 7e28; 0x50bb4b: 7e3e
+	static const int all_deadzone_addrs[][5] = {
+		// last address duplicated for all but XWA, to avoid a special case
+		{0x40b4c0, 0x4acafa, 0x4acb3f, 0x4acb83, 0x4acb83}, // X-Wing
+		{0x41ce80, 0x49a91a, 0x49a95f, 0x49a9a3, 0x49a9a3}, // TIE
+		{0x4115f0, 0x4aae78, 0x4aaec5, 0x4aaf12, 0x4aaf12}, // BoP
+		{0x405590, 0x4a5a43, 0x4a5a8f, 0x4a5adb, 0x4a5adb}, // XvT
+		{0x4344a0, 0x50ba69, 0x50baae, 0x50bb00, 0x50bb4b}, // XWA
+		{0, 0, 0, 0, 0} // Invalid
+	};
+	const int (&deadzone_addrs)[5] = all_deadzone_addrs[isXWing ? 0 : isTIE ? 1 : isBoP ? 2 : isXvT ? 3 : isXWA ? 4 : 5];
+	if (DisableDeadzone && deadzone_addrs[0]) {
+		if (*(const unsigned char*)deadzone_addrs[0] == 0x51 || *(const unsigned char*)deadzone_addrs[0] == 0x66) {
+			DWORD old, dummy;
+			VirtualProtect((void*)deadzone_addrs[0], 1, PAGE_READWRITE, &old);
+			*(unsigned char*)deadzone_addrs[0] = 0xc3;
+			VirtualProtect((void*)deadzone_addrs[0], 1, old, &dummy);
+		}
+		// More patches needed (replacing jle by NOP, jg for XvT because cmp arguments are swapped):
+		bool match = true;
+		for (int i = 1; i < 5; ++i) {
+			match &= *(const unsigned char*)deadzone_addrs[i] == (isXvT ? 0x7d : 0x7e);
+		}
+		if (match)
+		{
+			DWORD old, dummy;
+			int len = deadzone_addrs[4] + 2 - deadzone_addrs[1];
+			VirtualProtect((void*)deadzone_addrs[1], len, PAGE_READWRITE, &old);
+			for (int i = 1; i < 5; ++i) {
+				*(unsigned short *)deadzone_addrs[i] = 0x9090;
+			}
+			VirtualProtect((void*)deadzone_addrs[1], len, old, &dummy);
+		}
 	}
 	// ISD laser fix, not tested (esp. with Steam version)
 	if (AutoPatch >= 2 && isTIE &&
