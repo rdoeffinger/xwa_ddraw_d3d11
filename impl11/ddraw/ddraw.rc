@@ -48,8 +48,8 @@ END
 //
 
 1 VERSIONINFO
- FILEVERSION 1,5,12
- PRODUCTVERSION 1,5,12
+ FILEVERSION 1,5,13
+ PRODUCTVERSION 1,5,13
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -66,12 +66,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Jérémy Ansel"
             VALUE "FileDescription", "Direct3D 11 implementation for X-Wing series"
-            VALUE "FileVersion", "1.5.12"
+            VALUE "FileVersion", "1.5.13"
             VALUE "InternalName", "ddraw.dll"
             VALUE "LegalCopyright", "Copyright (C) Jérémy Ansel 2014, Reimar Döffinger 2015-2020"
             VALUE "OriginalFilename", "ddraw.dll"
             VALUE "ProductName", "xwa_ddraw_d3d11"
-            VALUE "ProductVersion", "1.5.12"
+            VALUE "ProductVersion", "1.5.13"
         END
     END
     BLOCK "VarFileInfo"
