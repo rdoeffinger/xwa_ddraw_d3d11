@@ -1,0 +1,45 @@
+name: CMake with Visual Studio
+
+on:
+  push:
+    branches: [ "cmake" ]
+  pull_request:
+    branches: [ "cmake" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -S impl11 --preset x86-release
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      run: ctest -VV --test-dir ${{github.workspace}}/build
+
+    - name: Install
+      run: cmake --install ${{github.workspace}}/build --prefix ${{github.workspace}}
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: xwing_ddraw_d3d11
+        path: |
+          ${{github.workspace}}/LICENSE.txt
+          ${{github.workspace}}/ddraw.cfg
+          ${{github.workspace}}/ddraw.dll
+          ${{github.workspace}}/nopowervr.txt
+          ${{github.workspace}}/readme.txt
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: xwing_ddraw_d3d11_pdb
+        path: |
+          ${{github.workspace}}/build/bin/ddraw.pdb
